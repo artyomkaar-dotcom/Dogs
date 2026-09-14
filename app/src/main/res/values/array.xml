@@ -2,7 +2,7 @@
 <resources>
 
 
-    <string-array name="category_array">
+    <string-array name="category_drawer">
         <item>Animals</item>
         <item>Plants</item>
         <item>Work</item>
@@ -14,6 +14,34 @@
         <item>News</item>
         <item>Other</item>
         <item>All</item>
+    </string-array>
+
+    <string-array name="category_top">
+        <item>Animals</item>
+        <item>Plants</item>
+        <item>Work</item>
+        <item>Services</item>
+        <item>Real estate</item>
+        <item>Auto</item>
+        <item>Electronics</item>
+        <item>Entertainments</item>
+        <item>News</item>
+        <item>Other</item>
+        <item>All</item>
+        <item>Saved</item>
+    </string-array>
+
+    <string-array name="category_add">
+        <item>Animals</item>
+        <item>Plants</item>
+        <item>Work</item>
+        <item>Services</item>
+        <item>Real estate</item>
+        <item>Auto</item>
+        <item>Electronics</item>
+        <item>Entertainments</item>
+        <item>News</item>
+        <item>Other</item>
     </string-array>
 
     <string-array name="publish_period">

@@ -51,6 +51,7 @@ import com.kodex.guide.domain.model.Book
 import com.kodex.guide.ui.theme.ButtonColorBlue
 import com.kodex.guide.ui.theme.Orange
 import kotlinx.coroutines.flow.collectLatest
+import com.kodex.guide.presentation.myPosts.MyPostsEvent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,13 +65,22 @@ fun MyPostsScreen(
     val context = LocalContext.current
 
     // ✅ Показываем события ViewModel (тосты)
+    // ✅ Показываем события ViewModel (тосты)
     LaunchedEffect(Unit) {
-        viewModel.events.collectLatest { event ->
+        viewModel.uiEvents.collectLatest { event ->
             when (event) {
-                is MyPostsViewModel.MyPostsEvent.Toast ->
+                is MyPostsEvent.Toast ->
                     Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
 
-                 is MyPostsViewModel.MyPostsEvent.RestoreDraft -> TODO()
+                is MyPostsEvent.RestoreDraft -> {
+                    // Здесь должна быть логика восстановления,
+                    // но так как это экран СПИСКА постов, а не редактор,
+                    // это событие сюда приходить не должно.
+                    // Можно просто игнорировать или залогировать.
+                }
+                is MyPostsEvent.NavigateBack -> {
+                    onBack() // Если нужно обрабатывать навигацию и здесь
+                }
             }
         }
     }

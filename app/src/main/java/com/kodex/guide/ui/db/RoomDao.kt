@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import com.kodex.guide.data.source.local.DraftEntity
 import com.kodex.guide.domain.model.Book
 import kotlinx.coroutines.flow.Flow
 

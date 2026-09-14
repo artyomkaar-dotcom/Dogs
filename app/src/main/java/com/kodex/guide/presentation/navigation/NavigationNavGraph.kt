@@ -105,6 +105,8 @@ fun NavigationNavGraph (navController: NavHostController){
                     navController.navigate(NavRoutes.MyPostsNavObject(
                         uid = ""
                     ))
+                }, onSavedClick = {
+
                 },
             )
         }

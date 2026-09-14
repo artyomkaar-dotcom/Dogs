@@ -2,8 +2,11 @@ package com.kodex.guide.domain.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import androidx.room.TypeConverters
+import com.kodex.guide.ui.db.BookConverter
 
 @Entity(tableName ="books")
+@TypeConverters(BookConverter::class) // Можно указать здесь, если не указали в Database
 data class Book(
    // @PrimaryKey(autoGenerate = true)
     val id: Int = 0,

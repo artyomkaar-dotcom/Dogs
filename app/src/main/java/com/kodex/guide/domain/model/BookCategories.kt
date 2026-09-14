@@ -14,6 +14,7 @@ enum class BookCategories(
     OTHER(8),         // "Сохраненные"
     NEWS(9),           // "Все" (id=0, но в коде стоит внизу)
     ALL(10);
+
     companion object{
         fun fromId(id: Int): BookCategories{
             return entries.firstOrNull{ entry ->

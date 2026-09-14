@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.plugin.serialization)
     alias(libs.plugins.ksp.plugin)
     alias(libs.plugins.hilt.plugin)
+        //  id("org.jetbrains.kotlin.plugin.compose")
 
 }
 

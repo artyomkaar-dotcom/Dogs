@@ -73,7 +73,6 @@ import com.kodex.guide.presentation.components.InfoRow
 import com.kodex.guide.presentation.components.SectionHeader
 import com.kodex.guide.presentation.components.ServiceInfoRow
 import com.kodex.guide.presentation.components.StatusChip
-import com.kodex.guide.presentation.components.StatusDelivery
 import com.kodex.guide.presentation.detailScreen.CommentListItem
 import com.kodex.guide.presentation.detailScreen.DetailsScreenViewModel
 import com.kodex.guide.presentation.events.DetailUiEvents
@@ -198,7 +197,7 @@ fun MainContent(
 
                 // Категория по центру
                 Text(
-                    text = stringArrayResource(id = R.array.category_array)[navObject.categoryIndex.id],
+                    text = stringArrayResource(id = R.array.category_drawer)[navObject.categoryIndex.id],
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
                     color = Color.White,

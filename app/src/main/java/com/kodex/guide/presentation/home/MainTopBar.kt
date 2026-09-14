@@ -32,7 +32,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringArrayResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -56,7 +55,7 @@ fun MainTopBar(
     var targetState by remember { mutableStateOf(false) }
     var queryText by remember { mutableStateOf("") }
     var expandedState by remember { mutableStateOf(false) }
-    val categoryList = stringArrayResource(id = R.array.category_array)
+    val categoryList = stringArrayResource(id = R.array.category_drawer)
 
     // 1. Создаем FocusRequester для управления фокусом
     val focusRequester = remember { FocusRequester() }

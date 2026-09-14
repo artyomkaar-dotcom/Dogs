@@ -3,14 +3,14 @@ package com.kodex.guide.ui.db
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.kodex.guide.data.source.local.DraftEntity
 import com.kodex.guide.domain.model.Book
 
-@Database(entities = [Book::class], version = 3, exportSchema = false)
+@Database(entities = [Book::class, DraftEntity::class], version = 5, exportSchema = false)
 @TypeConverters(BookConverter::class)
 abstract class MainDb: RoomDatabase() {
 
-    // abstract fun bookDao(): PostDao
-
+    abstract fun draftDao(): DraftDao
     abstract fun trackDao(): RoomDao
 }
 

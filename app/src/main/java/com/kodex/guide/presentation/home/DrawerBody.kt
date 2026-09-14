@@ -1,6 +1,5 @@
 package com.kodex.guide.presentation.home
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,7 +26,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -40,7 +38,6 @@ import com.kodex.guide.domain.model.BookCategories
 import com.kodex.guide.domain.model.UserRole
 import com.kodex.guide.ui.theme.ButtonColorBlue
 import com.kodex.guide.ui.theme.GrayLite
-import kotlinx.coroutines.launch
 
 /**
  * Модель элемента бокового меню.
@@ -71,7 +68,7 @@ fun DrawerBody(
     val isAdmin by viewModelHome.isAdminState.collectAsState()
     val isAuthorized by viewModelHome.isAuthorized.collectAsState()
 
-    val categoryList = stringArrayResource(id = R.array.category_array)
+    val categoryList = stringArrayResource(id = R.array.category_drawer)
     val categoryAdmin = stringArrayResource(id = R.array.category_admin)
 
     // ✅ Статический список категорий — порядок больше не важен
@@ -85,7 +82,7 @@ fun DrawerBody(
             DrawerCategoryItem(Icons.Default.Agriculture, BookCategories.AUTO, ),                 // 5 - Авто
             DrawerCategoryItem(Icons.Default.ElectricalServices, BookCategories.ELECTRONICS,), // 6 - Электроника
             DrawerCategoryItem(Icons.Default.AutoAwesome, BookCategories.ENTERTAINMENTS), // 7 - Развлечения
-            DrawerCategoryItem(Icons.Default.AutoAwesome, BookCategories.NEWS), // 7 - Развлечения
+            DrawerCategoryItem(Icons.Default.AutoAwesome, BookCategories.OTHER), // 7 - Развлечения
             DrawerCategoryItem(Icons.Default.Dialpad, BookCategories.OTHER)                    // 8 - Сохраненные
         )
     }

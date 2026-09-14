@@ -2,7 +2,6 @@ package com.kodex.guide.presentation.add_book
 
 import android.graphics.BitmapFactory
 import android.util.Base64
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -26,8 +25,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -46,7 +43,6 @@ import coil.compose.rememberAsyncImagePainter
 import com.kodex.bookmarketcompose.R
 import com.kodex.guide.data.mapper.toDomain
 import com.kodex.guide.domain.model.BookCategories
-import com.kodex.guide.domain.model.UserRole
 import com.kodex.guide.presentation.home.HomeViewModel
 import com.kodex.guide.ui.addscreen.data.RoundedCornerDropDownMenu
 import com.kodex.guide.presentation.navigation.NavRoutes
@@ -88,7 +84,7 @@ fun AddBookScreen(
      val userRole = remember { viewModelHome.userRole.value}
 
      val context = LocalContext.current
-     val categories = remember { context.resources.getStringArray(R.array.category_array) }
+     val categories = remember { context.resources.getStringArray(R.array.category_drawer) }
      val selectedCategory = remember { mutableStateOf(navData.categoryIndex) }
      val navImageUrl = remember { mutableStateOf(navData.imageUrl) }
      val scrollState = rememberScrollState()

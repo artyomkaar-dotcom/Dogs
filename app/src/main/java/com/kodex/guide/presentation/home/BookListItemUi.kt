@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -35,7 +34,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -100,7 +98,7 @@ fun BookListItemUi(
 
             // 2. Категория в левом верхнем углу
             Text(
-                " " + stringArrayResource(id = R.array.category_array)[book.categoryIndex.id]+ " ",
+                " " + stringArrayResource(id = R.array.category_drawer)[book.categoryIndex.id]+ " ",
                // " " + stringArrayResource(R.array.category_array)[book.categoryIndex] + " ",
                 fontSize = 18.sp,
                 color = Color.White,

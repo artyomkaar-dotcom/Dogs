@@ -18,7 +18,8 @@ fun BottomMenu(
     selectedItem: Int,
     onCategoryClick: (BookCategories)-> Unit = {},
     onHomeClick: () -> Unit = {},
-    onSettingsClick: () -> Unit = {}
+    onSettingsClick: () -> Unit = {},
+    onSavedClick: () -> Unit = {}
 ) {
     val items = listOf(
         BottomMenuItem.Home,
@@ -35,13 +36,10 @@ fun BottomMenu(
         items.forEach { item ->
             NavigationBarItem(
                 selected = selectedItem == item.titleId,
-                //selected = selectedItem == item.titleId,
                 onClick = {
                     when (item.titleId) {
                         BottomMenuItem.Home.titleId -> onHomeClick()
-                        BottomMenuItem.Saved.titleId -> onCategoryClick(BookCategories.OTHER)
-                       // BottomMenuItem.Settings.titleId -> onSettingsClick()
-
+                        BottomMenuItem.Saved.titleId -> onSavedClick()
                     }
                 },
                 icon = {
