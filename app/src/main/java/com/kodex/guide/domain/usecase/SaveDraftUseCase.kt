@@ -1,8 +1,7 @@
 package com.kodex.guide.domain.usecase
 
-import android.provider.Telephony
 import com.kodex.guide.data.mapper.DraftMapper
-import com.kodex.guide.ui.db.RoomDao
+import com.kodex.guide.domain.model.Book
 import com.kodex.guide.domain.model.PostEditorState
 import com.kodex.guide.domain.repository.MyPostsRepo
 import com.kodex.guide.ui.db.DraftDao
@@ -19,5 +18,6 @@ class SaveDraftUseCase @Inject constructor(
         val entity = DraftMapper.toEntity(state)
         return draftDao.saveDraft(entity)
     }
-  //  suspend operator fun invoke(book: Book): Result<Book> = repo.saveDraft(book)
+
+    suspend operator fun invoke(book: Book): Result<Book> = repo.saveDraft(book)
 }

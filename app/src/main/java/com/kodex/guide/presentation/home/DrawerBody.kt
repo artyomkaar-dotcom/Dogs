@@ -32,7 +32,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.kodex.bookmarketcompose.R
 import com.kodex.guide.domain.model.BookCategories
 import com.kodex.guide.domain.model.UserRole
@@ -60,6 +60,7 @@ fun DrawerBody(
     onAdmin: (Boolean) -> Unit = {},
     onAdminClick: () -> Unit = {},
     onCategoryClick: (BookCategories) -> Unit = {},
+    showMyPosts: Boolean = true,
     onMyPostsClick: () -> Unit = {},
     onCloseDrawer: () -> Unit = {}   // ✅ передаём закрытие снаружи
 ) {
@@ -71,51 +72,106 @@ fun DrawerBody(
     val categoryList = stringArrayResource(id = R.array.category_drawer)
     val categoryAdmin = stringArrayResource(id = R.array.category_admin)
 
-    // ✅ Статический список категорий — порядок больше не важен
-    val categoryItems = remember {
-        listOf(
-            DrawerCategoryItem(Icons.Default.CrueltyFree, BookCategories.ANIMALS,),           // 0 - Животные
-            DrawerCategoryItem(Icons.Default.Celebration, BookCategories.PLANTS, ),             // 1 - Растения
-            DrawerCategoryItem(Icons.Default.CleaningServices, BookCategories.WORK),            // 2 - Работа
-            DrawerCategoryItem(Icons.Default.MiscellaneousServices, BookCategories.SERVICES), // 3 - Услуги
-            DrawerCategoryItem(Icons.Default.AddHomeWork, BookCategories.REAL_ESTATE ),   // 4 - Недвижимость
-            DrawerCategoryItem(Icons.Default.Agriculture, BookCategories.AUTO, ),                 // 5 - Авто
-            DrawerCategoryItem(Icons.Default.ElectricalServices, BookCategories.ELECTRONICS,), // 6 - Электроника
-            DrawerCategoryItem(Icons.Default.AutoAwesome, BookCategories.ENTERTAINMENTS), // 7 - Развлечения
-            DrawerCategoryItem(Icons.Default.AutoAwesome, BookCategories.OTHER), // 7 - Развлечения
-            DrawerCategoryItem(Icons.Default.Dialpad, BookCategories.OTHER)                    // 8 - Сохраненные
-        )
-    }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(ButtonColorBlue)
     ) {
+        // background first Screen
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(16.dp))
-            Divider()
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(GrayLite)
+            )
             Spacer(modifier = Modifier.height(16.dp))
 
-            // В DrawerBody.kt
-
-// ✅ Рендерим категории циклом (используем item.category.id для получения правильного текста из массива)
-            categoryItems.forEach { item ->
-                DrawerMenuItem(
-                    iconDrawableId = item.icon,
-                    text = categoryList[item.category.id],
-                    onItemClick = {
-                        onCategoryClick(item.category) // 1. Сообщаем, что нажали
-                        onCloseDrawer()                // 2. Просим родительский экран закрыть шторку
-                    }
-                )
-            }
-
+            DrawerMenuItem(
+                iconDrawableId = Icons.Default.CrueltyFree,
+                text = categoryList[0],
+                onItemClick = {
+                    onCategoryClick(BookCategories.ANIMALS)
+                    onCloseDrawer()
+                }
+            )
+            DrawerMenuItem(
+                iconDrawableId = Icons.Default.Celebration,
+                text = categoryList[1],
+                onItemClick = {
+                    onCategoryClick(BookCategories.PLANTS)
+                    onCloseDrawer()
+                }
+            )
+            DrawerMenuItem(
+                iconDrawableId = Icons.Default.CleaningServices,
+                text = categoryList[2],
+                onItemClick = {
+                    onCategoryClick(BookCategories.WORK)
+                    onCloseDrawer()
+                }
+            )
+            DrawerMenuItem(
+                iconDrawableId = Icons.Default.MiscellaneousServices,
+                text = categoryList[3],
+                onItemClick = {
+                    onCategoryClick(BookCategories.SERVICES)
+                    onCloseDrawer()
+                }
+            )
+            DrawerMenuItem(
+                iconDrawableId = Icons.Default.AddHomeWork,
+                text = categoryList[4],
+                onItemClick = {
+                    onCategoryClick(BookCategories.REAL_ESTATE)
+                    onCloseDrawer()
+                }
+            )
+            DrawerMenuItem(
+                iconDrawableId = Icons.Default.Agriculture,
+                text = categoryList[5],
+                onItemClick = {
+                    onCategoryClick(BookCategories.AUTO)
+                    onCloseDrawer()
+                }
+            )
+            DrawerMenuItem(
+                iconDrawableId = Icons.Default.ElectricalServices,
+                text = categoryList[6],
+                onItemClick = {
+                    onCategoryClick(BookCategories.ELECTRONICS)
+                    onCloseDrawer()
+                }
+            )
+            DrawerMenuItem(
+                iconDrawableId = Icons.Default.AutoAwesome,
+                text = categoryList[7],
+                onItemClick = {
+                    onCategoryClick(BookCategories.ENTERTAINMENTS)
+                    onCloseDrawer()
+                }
+            )
+            DrawerMenuItem(
+                iconDrawableId = Icons.Default.Dialpad,
+                text = categoryList[8],
+                onItemClick = {
+                    onCategoryClick(BookCategories.OTHER)
+                    onCloseDrawer()
+                }
+            )
             Spacer(modifier = Modifier.height(15.dp))
-            Divider()
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(GrayLite)
+            )
             Spacer(modifier = Modifier.height(15.dp))
 
             // Админ-пункт
@@ -150,7 +206,7 @@ fun DrawerBody(
                     }
                 )
 
-                if (userRole.hasAccessTo(UserRole.USER)) {
+                if (showMyPosts && userRole.hasAccessTo(UserRole.USER)) {
                     DrawerMenuItem(
                         iconDrawableId = Icons.Default.Person,
                         text = categoryAdmin[5], // ✅ добавили именованный параметр
@@ -164,15 +220,4 @@ fun DrawerBody(
         }
     }
 
-}
-
-/** Вынесенный разделитель — убираем дублирование разметки */
-@Composable
-private fun Divider() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(1.dp)
-            .background(GrayLite)
-    )
 }

@@ -45,8 +45,16 @@ class MyPostsRepositoryImpl @Inject constructor(
 
     override suspend fun upload(book: Book): Result<Unit> = runCatching {
         withContext(Dispatchers.IO) {
-            remote.saveBook(book.toBookDTO()).getOrThrow()  // set() по key = create или update
-            dao.setUploaded(book.key, true)
+            val uid = auth.uid ?: throw IllegalStateException("Нужен вход в аккаунт")
+            val published = book.copy(
+                key = book.key.ifEmpty { UUID.randomUUID().toString() },
+                authorUid = uid,
+                isAuthor = true,
+                isUploaded = true,
+                searchTitle = book.title.lowercase()
+            )
+            remote.saveBook(published.toBookDTO()).getOrThrow()
+            dao.insertPost(published)
         }
     }
 

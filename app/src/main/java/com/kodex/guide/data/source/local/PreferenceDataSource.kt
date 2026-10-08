@@ -7,6 +7,7 @@ import com.kodex.guide.domain.model.User
 import com.kodex.guide.domain.model.UserRole
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton

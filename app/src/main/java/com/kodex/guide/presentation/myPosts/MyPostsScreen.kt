@@ -46,7 +46,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.kodex.guide.domain.model.Book
 import com.kodex.guide.ui.theme.ButtonColorBlue
 import com.kodex.guide.ui.theme.Orange
@@ -102,6 +102,7 @@ fun MyPostsScreen(
                 containerColor = Orange.copy(alpha = 0.6F),
                 contentColor = Color.White,
 
+
                 ) {
                 Icon(
                     imageVector = Icons.Default.Add,
@@ -138,8 +139,9 @@ fun MyPostsScreen(
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(padding),
                 contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
+
                 items(posts, key = { it.key }) { book ->
                     MyPostCard(
                         book = book,

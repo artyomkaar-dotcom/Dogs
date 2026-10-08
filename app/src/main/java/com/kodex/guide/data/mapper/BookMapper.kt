@@ -30,6 +30,10 @@ fun BookDTO.toBook(): Book {
         delivery = delivery,
         payment = payment,
         ratingsList = ratingsList,
+        latitude = latitude,
+        longitude = longitude,
+        authorUid = authorUid,
+        isUploaded = isUploaded,
     )
 }
 
@@ -58,5 +62,9 @@ fun Book.toBookDTO(): BookDTO {
         delivery = delivery,
         payment = payment,
         ratingsList = ratingsList,
+        latitude = latitude,
+        longitude = longitude,
+        authorUid = authorUid,
+        isUploaded = isUploaded,
     )
 }

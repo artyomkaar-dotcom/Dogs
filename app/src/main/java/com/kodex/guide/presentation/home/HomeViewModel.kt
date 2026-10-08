@@ -1,11 +1,9 @@
 package com.kodex.guide.presentation.home
 
 import android.util.Log
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
@@ -43,7 +41,6 @@ import com.kodex.guide.domain.usecase.ObserveSavedKeysUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -103,10 +100,12 @@ class HomeViewModel @Inject constructor(
     val showAuthDialog = mutableStateOf(false)
     val isLogoutDialog = mutableStateOf(false)
     var isRegisterState = mutableStateOf(false)
-    val categoryState = mutableStateOf(BookCategories.ALL)
+    val categoryState = mutableStateOf(BookCategories.OTHER)
+    val hasSelectedCategory = mutableStateOf(false)
     private val bookListUpdate = MutableStateFlow<List<ChangedTempBook>>(emptyList())
     private val bookFilterStateFlow = MutableStateFlow(BookFilterState())
     private val searchStateFlow = MutableStateFlow("")
+    private val booksRefreshFlow = MutableStateFlow(0)
     private val debounceSearchFlow = searchStateFlow
         .debounce(500)
         .distinctUntilChanged()
@@ -129,8 +128,9 @@ class HomeViewModel @Inject constructor(
     val books: Flow<PagingData<Book>> = combine(
         savedKeysFlow,
         bookFilterStateFlow,
-        debounceSearchFlow
-    ) { savedKeys, filter, searchText ->
+        debounceSearchFlow,
+        booksRefreshFlow
+    ) { savedKeys, filter, searchText, _ ->
 
         Triple(
             savedKeys.toList(),   // ← важно: Set<String> -> List<String>
@@ -164,6 +164,11 @@ class HomeViewModel @Inject constructor(
                 }
             }
         }
+
+    fun refreshBooks() {
+        booksRefreshFlow.update { it + 1 }
+    }
+
     private val _authEvents = MutableSharedFlow<AuthEvent>()
     val authEvents = _authEvents.asSharedFlow()
     private val _uiState = MutableSharedFlow<MainUiState>()
@@ -506,6 +511,7 @@ class HomeViewModel @Inject constructor(
      */
     fun onCategorySelected(category: BookCategories) {
         // 1. Обновляем состояние категории и применяем фильтр
+        hasSelectedCategory.value = true
         categoryState.value = category
         clearTempBookList()
       //  refreshFavoritesKeys()
@@ -522,6 +528,7 @@ class HomeViewModel @Inject constructor(
     }
 
     fun getAllBooksFromCategory(category: BookCategories) {
+        hasSelectedCategory.value = true
         categoryState.value = category
         clearTempBookList()
 
@@ -749,8 +756,6 @@ class HomeViewModel @Inject constructor(
             }
     }*/
 }
-
-
 
 
 

@@ -16,6 +16,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MyPostsViewModel @Inject constructor(
     private val validatePost: ValidatePostUseCase,
+    private val geocodePostAddress: GeocodePostAddressUseCase,
     private val observeMyPosts: ObserveMyPostsUseCase,
     private val getMyPost: GetMyPostUseCase,
     private val saveDraft: SaveDraftUseCase,
@@ -29,6 +30,11 @@ class MyPostsViewModel @Inject constructor(
     // Ошибки валидации
     private val _validationErrors = MutableStateFlow<List<String>>(emptyList())
     val validationErrors: StateFlow<List<String>> = _validationErrors.asStateFlow()
+
+    private val _isSavingOrUploading = MutableStateFlow(false)
+    val isSavingOrUploading: StateFlow<Boolean> = _isSavingOrUploading.asStateFlow()
+    private val _isPublishing = MutableStateFlow(false)
+    val isPublishing: StateFlow<Boolean> = _isPublishing.asStateFlow()
 
     // Список моих постов
     private val _myPosts = MutableStateFlow<List<Book>>(emptyList())
@@ -71,37 +77,75 @@ class MyPostsViewModel @Inject constructor(
     }
 
     fun savePost(state: PostEditorState, publish: Boolean) {
-        viewModelScope.launch {
-            var book = state.toBook()
-            _editPost.value?.let { original ->
-                book = book.copy(key = original.key, isUploaded = original.isUploaded)
-            }
-            if (state.imageUri != null) {
-                val base64Image = bitmapEncoder.imageToBase64(state.imageUri)
-                book = book.copy(imageUrl = base64Image)
-            } else if (state.existingImageUrl.isNotEmpty()) {
-                book = book.copy(imageUrl = state.existingImageUrl)
-            }
-            val result = validatePost(book)
-            if (!result.isValid) {
-                _validationErrors.value = result.errors
-                emitToast("Проверьте заполнение полей")
-                return@launch
-            }
-            _validationErrors.value = emptyList()
+        if (_isSavingOrUploading.value) return
+        _isSavingOrUploading.value = true
+        _isPublishing.value = publish
 
-            if (!publish) {
-                saveDraft(state)
-                emitToast("Черновик сохранен")
-            } else {
-                uploadMyPost(book)
-                    .onSuccess {
-                        emitToast("Объявление опубликовано!")
-                        _uiEvents.emit(MyPostsEvent.NavigateBack) // ✅ Возврат на главный экран
+        viewModelScope.launch {
+            try {
+                var book = state.toBook()
+                _editPost.value?.let { original ->
+                    book = book.copy(
+                        key = original.key,
+                        isUploaded = original.isUploaded
+                    )
+                }
+                if (state.imageUri != null) {
+                    val base64Image = bitmapEncoder.imageToBase64(state.imageUri)
+                    book = book.copy(imageUrl = base64Image)
+                } else if (state.existingImageUrl.isNotEmpty()) {
+                    book = book.copy(imageUrl = state.existingImageUrl)
+                }
+                val result = validatePost(book)
+                if (!result.isValid) {
+                    _validationErrors.value = result.errors
+                    emitToast("Проверьте заполнение полей")
+                    return@launch
+                }
+                _validationErrors.value = emptyList()
+
+                if (state.location) {
+                    val coordinates = geocodePostAddress(state.village, state.street, state.house)
+                    if (coordinates == null) {
+                        _validationErrors.value = listOf(
+                            "Не удалось определить координаты по адресу. Проверьте населённый пункт, улицу и дом."
+                        )
+                        emitToast("Не удалось определить координаты по адресу")
+                        return@launch
                     }
-                    .onFailure {
-                        emitToast("Ошибка публикации: ${it.message}")
-                    }
+                    book = book.copy(
+                        latitude = coordinates.latitude.toString(),
+                        longitude = coordinates.longitude.toString()
+                    )
+                } else if (!state.location) {
+                    book = book.copy(latitude = null, longitude = null)
+                }
+
+                if (!publish) {
+                    saveDraft(book)
+                        .onSuccess {
+                            emitToast("Черновик сохранен")
+                            _uiEvents.emit(MyPostsEvent.NavigateBack)
+                        }
+                        .onFailure { emitToast("Ошибка сохранения: ${it.message}") }
+                } else {
+                    uploadMyPost(book)
+                        .onSuccess {
+                            emitToast("Объявление опубликовано!")
+                            _uiEvents.emit(MyPostsEvent.NavigateBack)
+                        }
+                        .onFailure {
+                            emitToast("Ошибка публикации: ${it.message}")
+                        }
+                }
+            } catch (error: Exception) {
+                emitToast(
+                    if (publish) "Ошибка публикации: ${error.message}"
+                    else "Ошибка сохранения: ${error.message}"
+                )
+            } finally {
+                _isSavingOrUploading.value = false
+                _isPublishing.value = false
             }
         }
     }

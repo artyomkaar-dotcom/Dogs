@@ -29,7 +29,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.kodex.bookmarketcompose.R
 import com.kodex.guide.ui.dialods.AccountDialog
 import com.kodex.guide.ui.dialods.MyDialog
@@ -38,6 +37,7 @@ import com.kodex.guide.presentation.settingsScreen.menuItems.DropDownMenuItem
 import com.kodex.guide.presentation.settingsScreen.menuItems.MenuCategoryItem
 import com.kodex.guide.ui.theme.ButtonColorBlue
 import androidx.compose.ui.res.stringResource
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.kodex.guide.domain.model.AddressData
 import com.kodex.guide.domain.model.PersonalData
 import com.kodex.guide.domain.model.UserSettingsData
@@ -164,7 +164,7 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.height(5.dp))
                 Text(text = "   Email: ${viewModelHome.headerUser}")
                 Spacer(modifier = Modifier.height(5.dp))
-                Text(text = "   Role: ${viewModelHome.userRole.value}")
+                Text(text = "   Role: ${viewModelHome.userRole}")
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(text = "   Address: ${viewModel.addressData.value.toStringAddress()}")
                 Spacer(modifier = Modifier.height(2.dp))

@@ -3,14 +3,14 @@ package com.kodex.guide.presentation.navigation
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.kodex.guide.data.mapper.toAddScreenObject
+import androidx.compose.runtime.remember
+import com.kodex.guide.data.mapper.ParallaxImageCache
 import com.kodex.guide.data.mapper.toParallaxNavObject
-import com.kodex.guide.presentation.add_book.AddBookScreen
 import com.kodex.guide.presentation.admin_panel.AdminPanelScreen
 import com.kodex.guide.presentation.admin_panel.ModerationScreen
 import com.kodex.guide.presentation.comments.CommentsScreen
@@ -66,8 +66,7 @@ fun NavigationNavGraph (navController: NavHostController){
                 },
 
                 onBookEditClick = { book ->
-                    navController.navigate(book.toAddScreenObject()
-                    )
+                    navController.navigate(NavRoutes.MyPostEditorNavObject(bookKey = book.key))
                 },
                 onAdminClick = {
                     navController.navigate(NavRoutes.ModerationNavObject)
@@ -124,36 +123,22 @@ fun NavigationNavGraph (navController: NavHostController){
 
         composable<NavRoutes.MyPostEditorNavObject> { navEntry ->
             val navData = navEntry.toRoute<NavRoutes.MyPostEditorNavObject>()
+            val homeEntry = navController.getBackStackEntry<NavRoutes.HomeDataObject>()
+            val homeViewModel: HomeViewModel = hiltViewModel(homeEntry)
             MyPostEditorScreen(
                 bookKey = navData.bookKey,
-                onSaved = { navController.popBackStack() },
-                onBack = { navController.popBackStack() }
-            )
-        }
-        composable<NavRoutes.AddScreenObject> { navEntry ->
-            val navData = navEntry.toRoute<NavRoutes.AddScreenObject>()
-            AddBookScreen(
-                navData = navData,
                 onSaved = {
-                    navController.popBackStack()
+                    homeViewModel.refreshBooks()
+                    navController.popBackStack<NavRoutes.HomeDataObject>(inclusive = false)
                 },
-                onAccessDenied = {
-                    navController.popBackStack()  // Возврат если нет прав
-                },
-                onRegistrationNeeded = {
-                    // ✅ Запуск регистрации
-                    navController.navigate(NavRoutes.SingUpNavObject)
-                    // или
-                    // signUpViewModel.signUp(...)
-                },
-
+                onBack = { navController.popBackStack() }
             )
         }
 
         composable<NavRoutes.AdminPanelNavObject> {
             AdminPanelScreen(
                 onAddBookClick = {
-                    navController.navigate(NavRoutes.AddScreenObject())
+                    navController.navigate(NavRoutes.MyPostEditorNavObject(bookKey = ""))
                 },
                 onModerationClick = {
                     navController.navigate(NavRoutes.ModerationNavObject)
@@ -178,9 +163,14 @@ fun NavigationNavGraph (navController: NavHostController){
         }
         composable<NavRoutes.ParallaxNavObject> { navEntry ->
             val navData = navEntry.toRoute<NavRoutes.ParallaxNavObject>()
+            val navObject = remember(navData.bookId) {
+                navData.copy(
+                    imageUrl = ParallaxImageCache.take(navData.bookId) ?: navData.imageUrl
+                )
+            }
 
             ParallaxScreen(
-                navObject = navData,
+                navObject = navObject,
                 onBackPressed = { navController.popBackStack() },
                 onNavigateToReviews = {},
                 onCommentClick = {

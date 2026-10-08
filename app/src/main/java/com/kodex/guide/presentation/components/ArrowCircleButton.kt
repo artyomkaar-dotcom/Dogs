@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
@@ -30,8 +31,9 @@ fun ArrowCircleButton(
             .border(1.5.dp, borderColor, CircleShape)
             .background(backgroundColor, CircleShape)
             .clickable { onClick() },
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
+        
     ) {
-        Icon(Icons.Default.ArrowForward, contentDescription = null, tint = arrowColor, modifier = Modifier.size(20.dp))
+        Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = arrowColor, modifier = Modifier.size(20.dp))
     }
 }

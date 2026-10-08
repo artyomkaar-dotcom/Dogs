@@ -2,6 +2,9 @@ package com.kodex.guide.data.source.remote
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.kodex.guide.data.source.remote.FirebaseConst.MODERATION
+import com.kodex.guide.data.source.remote.FirebaseConst.RATING
+import com.kodex.guide.data.source.remote.FirebaseConst.RATING_DATA
 import com.kodex.guide.data.model.RatingDataDTO
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -17,25 +20,16 @@ class FirebaseModerationDataSource @Inject constructor(
     private val auth: FirebaseAuth
 ) {
 
-    // ⚠️ ПРИВЕДИ К СВОЕЙ СХЕМЕ FIRESTORE
-    // (имена коллекций/полей сверь с FirebaseConst или старым кодом в git)
-    private companion object {
-        const val COLLECTION_COMMENTS = "comments"
-        const val FIELD_STATUS = "status"
-        const val STATUS_PENDING = "pending"
-        const val STATUS_ACCEPTED = "accepted"
-    }
-
     /** Все комментарии, ожидающие модерации */
     suspend fun getAllCommentsToModerate(): Result<List<RatingDataDTO>> {
         return try {
-            val snapshot = db.collection(COLLECTION_COMMENTS)
-                .whereEqualTo(FIELD_STATUS, STATUS_PENDING)
+            val snapshot = db.collection(MODERATION)
                 .get()
                 .await()
 
             val comments = snapshot.documents.mapNotNull { document ->
                 document.toObject(RatingDataDTO::class.java)
+                    ?.copy(uid = document.id)
             }
             Result.success(comments)
         } catch (e: Exception) {
@@ -45,10 +39,23 @@ class FirebaseModerationDataSource @Inject constructor(
 
     /** Одобрить комментарий */
     suspend fun acceptComment(ratingDataDTO: RatingDataDTO): Result<Unit> {
+        if (ratingDataDTO.uid.isBlank() || ratingDataDTO.bookId.isBlank()) {
+            return Result.failure(
+                IllegalArgumentException("Для публикации отзыва нужны UID автора и ID объявления")
+            )
+        }
+
         return try {
-            db.collection(COLLECTION_COMMENTS)
+            val pendingComment = db.collection(MODERATION).document(ratingDataDTO.uid)
+            val publishedComment = db.collection(RATING)
+                .document(ratingDataDTO.bookId)
+                .collection(RATING_DATA)
                 .document(ratingDataDTO.uid)
-                .update(FIELD_STATUS, STATUS_ACCEPTED)
+
+            db.batch()
+                .set(publishedComment, ratingDataDTO)
+                .delete(pendingComment)
+                .commit()
                 .await()
             Result.success(Unit)
         } catch (e: Exception) {
@@ -59,7 +66,7 @@ class FirebaseModerationDataSource @Inject constructor(
     /** Отклонить / удалить комментарий */
     suspend fun deleteComment(uid: String): Result<Unit> {
         return try {
-            db.collection(COLLECTION_COMMENTS)
+            db.collection(MODERATION)
                 .document(uid)
                 .delete()
                 .await()

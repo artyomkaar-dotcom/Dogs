@@ -6,8 +6,10 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
-    fun String.toBitmap(): Bitmap?{
+@OptIn(ExperimentalEncodingApi::class)
+fun String.toBitmap(): Bitmap?{
         return try {
             val base64Image = Base64.decode(this)
             BitmapFactory.decodeByteArray(

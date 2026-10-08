@@ -1,5 +1,6 @@
 package com.kodex.guide.presentation.myPosts
 
+import android.widget.Toast
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Base64
@@ -26,8 +27,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.flow.collectLatest
 import coil.compose.AsyncImage
 import com.kodex.bookmarketcompose.R
 import com.kodex.guide.domain.model.BookCategories
@@ -45,6 +47,8 @@ fun MyPostEditorScreen(
     onBack: () -> Unit
 ) {
     val validationErrors by viewModel.validationErrors.collectAsState()
+    val isSavingOrUploading by viewModel.isSavingOrUploading.collectAsStateWithLifecycle()
+    val isPublishing by viewModel.isPublishing.collectAsStateWithLifecycle()
     if (validationErrors.isNotEmpty()) {
         AlertDialog(
             onDismissRequest = { viewModel.clearValidationErrors() },
@@ -92,6 +96,18 @@ fun MyPostEditorScreen(
 
     val scrollState = rememberScrollState()
     val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEvents.collectLatest { event ->
+            when (event) {
+                is MyPostsEvent.Toast ->
+                    Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
+
+                is MyPostsEvent.NavigateBack -> onSaved()
+                is MyPostsEvent.RestoreDraft -> Unit
+            }
+        }
+    }
 
     // Лаунчеры
     val photoUri = remember {
@@ -326,17 +342,27 @@ fun MyPostEditorScreen(
                         viewModel.savePost(state = getCurrentState(), publish = false)
                     },
                     modifier = Modifier.weight(1f),
+                    enabled = !isSavingOrUploading,
                     colors = ButtonDefaults.outlinedButtonColors(
                         containerColor = Orange
                     )
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Star,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(Modifier.width(4.dp))
-                    Text("Сохранить")
+                    if (isSavingOrUploading && !isPublishing) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text("Сохранение…")
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Star,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Text("Сохранить")
+                    }
                 }
 
                 // Кнопка "Опубликовать"
@@ -345,17 +371,27 @@ fun MyPostEditorScreen(
                         viewModel.savePost(state = getCurrentState(), publish = true)
                     },
                     modifier = Modifier.weight(1f),
+                    enabled = !isSavingOrUploading,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = ButtonColorBlue
                     )
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Call,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(Modifier.width(4.dp))
-                    Text("Отправить")
+                    if (isSavingOrUploading && isPublishing) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text("Отправка…")
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Call,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Text("Отправить")
+                    }
                 }
             }
 

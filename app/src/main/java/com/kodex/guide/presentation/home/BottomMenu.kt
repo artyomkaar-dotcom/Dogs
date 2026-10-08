@@ -1,5 +1,6 @@
 package com.kodex.guide.presentation.home
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Dialpad
 import androidx.compose.material3.Icon
@@ -7,6 +8,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.kodex.guide.domain.model.BookCategories
@@ -45,7 +47,11 @@ fun BottomMenu(
                 icon = {
                     Icon(
                         painter = painterResource(id = item.iconId),
-                        contentDescription = null
+                        contentDescription = null,
+
+
+
+
                     )
                 },
                 label = {

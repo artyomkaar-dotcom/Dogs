@@ -64,8 +64,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.kodex.bookmarketcompose.R
-import com.kodex.guide.data.service.WorkingHoursServiceImpl
-import com.kodex.guide.domain.service.WorkingHoursService
 import com.kodex.guide.presentation.components.ActionButton
 import com.kodex.guide.presentation.components.ArrowCircleButton
 import com.kodex.guide.presentation.components.DeliveryChip
@@ -93,14 +91,11 @@ fun MainContent(
     navObject: NavRoutes.ParallaxNavObject,
     onNavigateToReviews: () -> Unit,
     onShowMapClick: () -> Unit,
+    onShowImageClick: () -> Unit,
     viewModel: DetailsScreenViewModel = viewModel(),
     onBackPressed: () -> Unit,
-    timeService: WorkingHoursService = WorkingHoursServiceImpl(),  // ✅ DIP: зависит от абстракции
+    isOpenNow: Boolean,
 ) {
-    // ✅ статус вычисляется сервисом из строки часов, а не хранится в navObject
-    val isOpenNow = remember(navObject.openingHours) {
-        timeService.isOpenNow(navObject.openingHours)
-    }
     var showRateDialog by remember { mutableStateOf(false) }
     var showCommentDialog by remember { mutableStateOf(false) }
     val uiState = viewModel.uiState.collectAsState()
@@ -147,7 +142,12 @@ fun MainContent(
             AsyncImage(
                 model = bitmap,
                 contentDescription = navObject.title,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .then(
+                        if (bitmap != null) Modifier.clickable(onClick = onShowImageClick)
+                        else Modifier
+                    ),
                 contentScale = ContentScale.Crop
             )
 
@@ -364,11 +364,16 @@ fun MainContent(
             SectionHeader(title = "Адрес")
 
 // Местоположение в одну линию с круглой кнопкой-стрелкой
+            val latitude = navObject.latitude.toDoubleOrNull()
+            val longitude = navObject.longitude.toDoubleOrNull()
+            val hasMapCoordinates = navObject.location &&
+                latitude != null && latitude.isFinite() && latitude in -90.0..90.0 &&
+                longitude != null && longitude.isFinite() && longitude in -180.0..180.0
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 6.dp)
-                    .clickable { onShowMapClick() },
+                    .clickable(enabled = hasMapCoordinates) { onShowMapClick() },
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -407,33 +412,35 @@ fun MainContent(
                             overflow = TextOverflow.Ellipsis
                         )
                     }
-                    // ✅ НОВОЕ: «Посмотреть / на карте» напротив «Местоположение»
-                    Column(
-                        horizontalAlignment = Alignment.End,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = "Посмотреть на",
-                            fontSize = 12.sp,
-                            color = TextGray,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Text(
-                            text = " карте",
-                            fontSize = 15.sp,
-                            color = TextGray,
-                            fontWeight = FontWeight.Medium
-                        )
+                    if (hasMapCoordinates) {
+                        Column(
+                            horizontalAlignment = Alignment.End,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = "Посмотреть на",
+                                fontSize = 12.sp,
+                                color = TextGray,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                text = " карте",
+                                fontSize = 15.sp,
+                                color = TextGray,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
                     }
                 }
 
-                Spacer(modifier = Modifier.width(8.dp))
+                if (hasMapCoordinates) {
+                    Spacer(modifier = Modifier.width(8.dp))
 
-                // Правая часть: круглая кнопка со стрелкой
-                ArrowCircleButton(
-                    modifier = Modifier.padding(16.dp),
-                    onClick = onShowMapClick
-                )
+                    ArrowCircleButton(
+                        modifier = Modifier.padding(16.dp),
+                        onClick = onShowMapClick
+                    )
+                }
             }
 
 // Детальный адрес в одну линию (улица, дом, квартира)
@@ -513,11 +520,11 @@ fun MainContent(
                                 color = TextDark,
                                 fontWeight = FontWeight.Medium
                             )
-                            if (!navObject.isOpenNow) {
+                            if (!isOpenNow) {
                                 Text(
                                     text = "Сейчас закрыто",
                                     fontSize = 13.sp,
-                                    color = Color(0xFFEF4444),
+                                    color = Orange,
                                     fontWeight = FontWeight.Medium
                                 )
                             } else {
@@ -641,6 +648,3 @@ fun MainContent(
         }
     }
 }
-
-
-

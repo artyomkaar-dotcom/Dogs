@@ -86,19 +86,29 @@ fun AddressSection(
 
         OutlinedTextField(
             value = street, onValueChange = onStreetChange,
-            label = { Row { Text("Улица"); Text(" *", color = OptionalMark) } },
+            label = {
+                Row {
+                    Text("Улица")
+                    if (location) Text(" *", color = OptionalMark)
+                }
+            },
             modifier = Modifier.fillMaxWidth(), singleLine = true
         )
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(
                 value = house, onValueChange = onHouseChange,
-                label = { Row { Text("Дом"); Text(" *", color = OptionalMark) } },
+                label = {
+                    Row {
+                        Text("Дом")
+                        if (location) Text(" *", color = OptionalMark)
+                    }
+                },
                 modifier = Modifier.weight(1f), singleLine = true
             )
             OutlinedTextField(
                 value = flat, onValueChange = onFlatChange,
-                label = { Row { Text("Квартира"); Text(" *", color = OptionalMark) } },
+                label = { Text("Квартира") },
                 modifier = Modifier.weight(1f), singleLine = true
             )
         }
@@ -127,4 +137,3 @@ fun OptionsSection(
         }
     }
 }
-

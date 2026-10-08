@@ -58,9 +58,9 @@ class NavRoutes {
         val location:  Boolean = false,
         val delivery: Boolean = false,
         val payment: Boolean = false,
-        val latitude: String = "55.7558",   // Москва по умолчанию
-        val longitude: String = "37.6173",
-        val categoryIndex: BookCategories = BookCategories.ALL,
+        val latitude: String = "",
+        val longitude: String = "",
+        val categoryIndex: BookCategories = BookCategories.OTHER,
         val imageUrl: String = "",
         val author: String = "",
         val timestamp: Long = System.currentTimeMillis(),
@@ -85,7 +85,7 @@ class NavRoutes {
                     val latitude: String = "",
                     val longitude: String = "",
                     val description: String = "",
-                    val categoryIndex: BookCategories = BookCategories.ALL,
+                    val categoryIndex: BookCategories = BookCategories.OTHER,
                     val ratingsList: List<Int> = emptyList(),
                     val hasDelivery: Boolean = false,  // 🆕 Наличие доставки
                     val acceptsCard: Boolean = false   // 🆕 Оплата картой
@@ -99,7 +99,7 @@ class NavRoutes {
         val description: String = "",
         val price: String = "",
         val telephone: String = "",
-        val categoryIndex: BookCategories = BookCategories.ALL,
+        val categoryIndex: BookCategories = BookCategories.OTHER,
         val imageUrl: String = "",
         val author: String = "",
         val timestamp: Long = System.currentTimeMillis(),
@@ -113,7 +113,7 @@ class NavRoutes {
         val title: String = "Уютный уголок",
         val description: String = "Уютная кофейня в центре города. Мы предлагаем свежую выпечку, авторский кофе и приятную атмосферу для работы и встреч с друзьями. У нас есть бесплатный Wi-Fi, розетки и вежливый персонал.",
         val price: Int = 0,
-        val categoryIndex: BookCategories = BookCategories.ALL,
+        val categoryIndex: BookCategories = BookCategories.OTHER,
         val imageUrl: String = "",
         val author: String = "",
         val address: String = "ул. Центральная, 15, Москва",
@@ -136,34 +136,6 @@ class NavRoutes {
         )
     }
 
-
-    @Serializable
-    data class AddScreenObject(
-        val id: Int = 0,
-        val key: String = "",
-        val title: String = "",
-        val searchTitle: String = title.lowercase(),
-        val description: String = "",
-        val price: Int = 0,
-        val telephone: String = "",
-        val categoryIndex: BookCategories = BookCategories.ALL,
-        val imageUrl: String = "",
-        val isFavorite: Boolean = false,
-        val isAuthor: Boolean = false,
-        val authorId: Int = 0,
-        val publishPeriod: Int = 1,
-        val timeStamp: Long = System.currentTimeMillis(),
-        val deleteDate: Int = 0,
-        val village: String = "",
-        val street: String = "",
-        val house: String = "",
-        val flat: String = "",
-        val location: Boolean = false,
-        val delivery: Boolean = false,
-        val payment: Boolean = false,
-        val ratingsList: List<String> = emptyList(),
-
-        )
 
     @Serializable
     data class CommentsNavData(

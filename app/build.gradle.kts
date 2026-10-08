@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.application)
-   // alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.android)
   //alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.gms.google.services)
 
@@ -16,7 +16,7 @@ plugins {
 
 android {
     namespace = "com.kodex.bookmarketcompose"
-    compileSdk = 37
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.kodex.bookmarketcompose"
@@ -126,9 +126,13 @@ dependencies {
         implementation("org.osmdroid:osmdroid-android:6.1.20")
 
         // Для HTTP-запросов к OSRM (маршруты)
-        implementation("com.squareup.okhttp3:okhttp:5.5.0")
+            //implementation("com.squareup.okhttp3:okhttp:5.5.0")
+        implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
 
         // Для работы с JSON от OSRM
-        implementation("com.google.code.gson:gson:2.14.0")
+       // implementation("com.google.code.gson:gson:2.14.0")
+        implementation("com.google.code.gson:gson:2.11.0")
+
     }
 }

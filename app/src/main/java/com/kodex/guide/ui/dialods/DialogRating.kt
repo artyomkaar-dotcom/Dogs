@@ -135,7 +135,7 @@ fun DialogRating(
 
                     }
                 ) {
-                    Text(text = "Rate")
+                    Text(text = "Оценить")
                 }
             }
         )

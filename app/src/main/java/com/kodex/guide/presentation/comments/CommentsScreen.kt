@@ -28,9 +28,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.kodex.guide.presentation.detailScreen.CommentListItem
-import com.kodex.guide.presentation.detailScreen.DetailsScreenViewModel
 import com.kodex.guide.ui.theme.Orange
 import com.kodex.guide.presentation.navigation.NavRoutes.CommentsNavData
 
