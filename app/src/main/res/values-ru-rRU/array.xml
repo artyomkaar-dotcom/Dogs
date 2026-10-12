@@ -13,6 +13,7 @@
         <item>Новости</item>
         <item>Разное</item>
         <item>Все</item>
+        <item>Все</item>
     </string-array>
 
     <string-array name="category_top">
@@ -62,6 +63,7 @@
         <item>Выход</item>
         <item>Сохраненные</item>
         <item>Мои объявления</item>
+        <item>Боковое меню</item>
         <item>Настройки</item>
     </string-array>
 

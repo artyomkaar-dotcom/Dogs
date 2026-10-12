@@ -149,9 +149,18 @@ fun NavigationNavGraph (navController: NavHostController){
             ModerationScreen()
         }
         composable<NavRoutes.SettingsNavObject> { navEntry ->
+            val homeEntry = navController.getBackStackEntry<NavRoutes.HomeDataObject>()
+            val homeViewModel: HomeViewModel = hiltViewModel(homeEntry)
             SettingsScreen(
+                user = homeViewModel.headerUser.value,
                 onBackClick = {
                     navController.popBackStack()
+                },
+                onMyPostsClick = {
+                    navController.navigate(NavRoutes.MyPostsNavObject(uid = ""))
+                },
+                onAddPostClick = {
+                    navController.navigate(NavRoutes.MyPostEditorNavObject(bookKey = ""))
                 },
                 onCloseAccountClick = {
                     navController.popBackStack(

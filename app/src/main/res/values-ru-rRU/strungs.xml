@@ -64,8 +64,6 @@
     <string name="entertainments">Развлечения</string>
     <!-- General -->
     <string name="empty_list">Список пуст</string>
-    <string name="added_to_favorites">Добавлено в избранное</string>
-    <string name="deleted_from_favorites">Удалено из избранного</string>
     <string name="added_to_memory">Пост добавлен в память</string>
     <string name="deleted_from_memory">Пост удален из памяти</string>
 
@@ -91,4 +89,13 @@
     <string name="deleted_account_massage">Вы уверены, что хотите удалить свой аккаунт?</string>
     <string name="delete">Удалить</string>
     <string name="the_fields_on_may_be_empty">Поля не могут быть пустыми</string>
+
+    <string name="back">Назад</string>
+    <string name="settings_personal_data">Личные данные</string>
+    <string name="settings_address">Адрес</string>
+    <string name="settings_password">Пароль</string>
+    <string name="settings_create_post">Создать объявление</string>
+    <string name="settings_my_posts">Мои объявления</string>
+    <string name="settings_delete_account">Удалить аккаунт</string>
+    <string name="settings_logout">Выход</string>
 </resources>

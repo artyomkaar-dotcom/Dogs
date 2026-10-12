@@ -89,5 +89,16 @@
     <string name="delete">Delete</string>
     <string name="the_fields_on_may_be_empty">The fields on may be empty</string>
 
+    <string name="back">Back</string>
+    <string name="settings_personal_data">Personal data</string>
+    <string name="settings_address">Address</string>
+    <string name="settings_password">Password</string>
+    <string name="settings_create_post">Create listing</string>
+    <string name="settings_my_posts">My listings</string>
+    <string name="settings_delete_account">Delete account</string>
+    <string name="settings_logout">Log out</string>
+    <string name="name">name</string>
+    <string name="email">email\n</string>
+
 
 </resources>

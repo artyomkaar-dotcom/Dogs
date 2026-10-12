@@ -44,7 +44,7 @@ fun MyDialog(
                         containerColor = DrawerColorBlue
                     )
                 ) {
-                    Text(text = "Cansel")
+                    Text(text = "Отмена")
 
                 }
             },

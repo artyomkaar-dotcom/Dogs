@@ -103,12 +103,11 @@ fun MainContent(
     val telephone = navObject.telephone
     val scope = rememberCoroutineScope()
 
-    var bitmap: Bitmap? = null
-
-    try {
-        val base64Image = Base64.decode(navObject.imageUrl, Base64.DEFAULT)
-        bitmap = BitmapFactory.decodeByteArray(base64Image, 0, base64Image.size)
-    } catch (e: IllegalArgumentException) {
+    val bitmap by remember(navObject.imageUrl) {
+        mutableStateOf<Bitmap?>(runCatching {
+            val base64Image = Base64.decode(navObject.imageUrl, Base64.DEFAULT)
+            BitmapFactory.decodeByteArray(base64Image, 0, base64Image.size)
+        }.getOrNull())
     }
     DialogRating(
         ratingData = uiState.value.ratingData,
@@ -148,7 +147,8 @@ fun MainContent(
                         if (bitmap != null) Modifier.clickable(onClick = onShowImageClick)
                         else Modifier
                     ),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
+               // transition = androidx.compose.animation.core.tween(durationMillis = 300)
             )
 
             // Затемнение снизу для читаемости текста
