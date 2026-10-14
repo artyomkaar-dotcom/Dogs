@@ -57,6 +57,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringArrayResource
+import java.text.SimpleDateFormat
+import java.util.Locale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -599,6 +601,17 @@ fun MainContent(
                 }
 
                 Spacer(modifier = Modifier.height(4.dp))
+
+                // Дата публикации
+                val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+                val publicationDate = dateFormat.format(navObject.timestamp)
+                Text(
+                    text = "Дата публикации: $publicationDate",
+                    fontSize = 14.sp,
+                    color = TextGray,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
             }
 
             // ===== Секция: Отзывы =====

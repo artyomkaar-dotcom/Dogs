@@ -700,7 +700,8 @@ fun HomeScreen(
                             showPremiumButton = nextRole != null && nextRole != UserRole.PREMIUM,
                             showGuestButton = currentRole == UserRole.USER ||
                                     currentRole == UserRole.BUSINESS ||
-                                    currentRole == UserRole.PREMIUM,
+                                    currentRole == UserRole.PREMIUM ||
+                                    currentRole == UserRole.ADMIN,
                             onDismiss = { viewModel.dismissAuthDialog() },
                             onNextTariffClick = {
                                 viewModel.dismissAuthDialog()
@@ -721,12 +722,7 @@ fun HomeScreen(
                     if (showPaymentSheet.value) {
                         PaymentBottomSheet(
                             viewModel = viewModel,
-                            onDismiss = { showPaymentSheet.value = false },
-                            onPaymentSuccess = {
-                                // Можно показать Toast или обновить UI
-                                Toast.makeText(context, "Роль обновлена!", Toast.LENGTH_SHORT)
-                                    .show()
-                            }
+                            onDismiss = { showPaymentSheet.value = false }
                         )
                     }
                 }

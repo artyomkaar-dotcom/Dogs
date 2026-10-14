@@ -76,7 +76,10 @@
     <string name="message">Message</string>
     <string name="yes">Yes</string>
     <string name="ok">OK</string>
-    <string name="cancel">Cansel</string>
+    <string name="cancel">Cancel</string>
+    <string name="exit_app_title">Exit app</string>
+    <string name="exit_app_message">Are you sure you want to exit?</string>
+    <string name="exit_app_confirm">Exit</string>
     <string name="comments">Comments</string>
     <string name="estimate">Estimate</string>
 

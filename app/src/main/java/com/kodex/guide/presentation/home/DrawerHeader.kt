@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.sp
 import com.kodex.bookmarketcompose.R
 import com.kodex.guide.domain.model.User
 import com.kodex.guide.domain.model.UserRole
-import com.kodex.guide.ui.theme.DrawerColorBlue
+import com.kodex.guide.ui.theme.ButtonColorBlue
 
 @Composable
 fun DrawerHeader(
@@ -42,7 +42,7 @@ fun DrawerHeader(
             .fillMaxWidth()
             .height(200.dp)
             .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp))
-            .background(DrawerColorBlue),
+            .background(ButtonColorBlue.copy(alpha = 0.6f)),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {

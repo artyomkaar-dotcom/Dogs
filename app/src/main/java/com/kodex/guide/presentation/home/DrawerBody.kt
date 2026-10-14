@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddHomeWork
@@ -22,6 +24,8 @@ import androidx.compose.material.icons.filled.Login
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.MiscellaneousServices
 import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.LocalGroceryStore
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.runtime.Composable
@@ -74,19 +78,12 @@ fun DrawerBody(
             .background(Color.White)
     ) {
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(16.dp))
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(1.dp)
-                    .background(Color.LightGray.copy(alpha = 0.3f))
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-
             // Categories with counts
             DrawerCategoryItem(
                 icon = Icons.Default.CrueltyFree,
@@ -188,6 +185,26 @@ fun DrawerBody(
                     onCloseDrawer()
                 }
             )
+            DrawerCategoryItem(
+                icon = Icons.Default.Build,
+                category = BookCategories.CONSTRUCTION,
+                categoryName = categoryList[10],
+                postCount = categoryCounts[BookCategories.CONSTRUCTION] ?: 0,
+                onItemClick = {
+                    onCategoryClick(BookCategories.CONSTRUCTION)
+                    onCloseDrawer()
+                }
+            )
+            DrawerCategoryItem(
+                icon = Icons.Default.LocalGroceryStore,
+                category = BookCategories.FOOD,
+                categoryName = categoryList[11],
+                postCount = categoryCounts[BookCategories.FOOD] ?: 0,
+                onItemClick = {
+                    onCategoryClick(BookCategories.FOOD)
+                    onCloseDrawer()
+                }
+            )
 
             Spacer(modifier = Modifier.height(15.dp))
             Box(
@@ -238,6 +255,7 @@ fun DrawerBody(
                         }
                     )
                 }
+                Spacer(modifier = Modifier.height(46.dp))
             }
         }
     }

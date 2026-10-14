@@ -39,7 +39,7 @@ fun CategoryCarousel(
     val categoryList = context.resources.getStringArray(R.array.category_drawer).toList()
     
     // Filter out duplicates and "All" entries (keep only unique categories)
-    val filteredCategories = categoryList.take(10) // First 10 items (Animals, Plants, Work, Services, Real estate, Auto, Electronics, Entertainments, News, Other)
+    val filteredCategories = categoryList.take(12) // First 12 items (all categories including Construction and Food)
 
     LazyRow(
         modifier = Modifier

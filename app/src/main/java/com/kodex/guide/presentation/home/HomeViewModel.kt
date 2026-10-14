@@ -86,7 +86,6 @@ class HomeViewModel @Inject constructor(
     private val observeSavedKeysUseCase: ObserveSavedKeysUseCase,
     ) : ViewModel() {
     val showPaymentSheet = mutableStateOf(false)
-    val paymentInProgress = mutableStateOf(false)
     val minPriceValue = mutableFloatStateOf(0f)
     val maxPriceValue = mutableFloatStateOf(0f)
     val isFilterByTitle = mutableStateOf(true)
@@ -441,31 +440,6 @@ class HomeViewModel @Inject constructor(
             }
     }
 
-    // ✅ Оплата и повышение до платного тарифа (BUSINESS или PREMIUM — из desiredRole)
-    fun upgradeToBusiness(
-        uid: String,
-        onSuccess: () -> Unit = {},
-        onError: (String) -> Unit = {}
-    ) {
-        viewModelScope.launch {
-            paymentInProgress.value = true
-            upgradeManager.applyPaidUpgrade(uid)
-                .onSuccess { role ->
-                    paymentInProgress.value = false
-                    applyRoleLocally(role)
-                    Log.d("MyLog", "Оплата успешна: роль повышена до ${role.name}")
-                    onSuccess()
-                }
-                .onFailure { error ->
-                    paymentInProgress.value = false
-                    Log.e("MyLog", "Ошибка повышения: ${error.message}")
-                    onError(error.message ?: "Неизвестная ошибка")
-                }
-        }
-    }
-
-
-
     // ✅ Сохранить/получить/очистить данные карты
     fun saveCardData(cardNumber: String, expiry: String) {
         preferenceDataSource.saveCardData(cardNumber, expiry)
@@ -733,6 +707,12 @@ class HomeViewModel @Inject constructor(
             _authEvents.emit(AuthEvent.ShowLogInDialog)
         }
     }
+
+    fun showLogoutTariffDialog() {
+        isLogoutDialog.value = true
+        showAuthDialog.value = true
+    }
+
 
 /*!    // ✅ Анонимный вход
     fun loginAnonymously() = viewModelScope.launch {

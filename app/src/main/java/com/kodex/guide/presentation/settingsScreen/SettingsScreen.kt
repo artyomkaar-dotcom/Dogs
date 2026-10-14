@@ -2,10 +2,10 @@ package com.kodex.guide.presentation.settingsScreen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -24,33 +24,32 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kodex.bookmarketcompose.R
 import com.kodex.guide.domain.model.AddressData
 import com.kodex.guide.domain.model.PersonalData
 import com.kodex.guide.domain.model.User
 import com.kodex.guide.domain.model.UserRole
 import com.kodex.guide.presentation.home.HomeViewModel
+import com.kodex.guide.presentation.home.PaymentBottomSheet
 import com.kodex.guide.presentation.home.TariffDialog
  import com.kodex.guide.ui.dialods.AccountDialog
-import com.kodex.guide.ui.dialods.MyDialog
+import com.kodex.guide.ui.dialods.SettingsRestartDialog
 import com.kodex.guide.ui.theme.ButtonColorBlue
-import com.kodex.guide.ui.theme.DrawerColorBlue
-import com.kodex.guide.presentation.settingsScreen.menuItems.DialogMenuItem
-import com.kodex.guide.presentation.settingsScreen.menuItems.DropDownMenuItem
-import com.kodex.guide.presentation.settingsScreen.menuItems.MenuCategoryItem
+import com.kodex.guide.ui.theme.Red
 
 @Composable
 fun SettingsScreen(
+    viewModelHome: HomeViewModel,
     user: User?,
     viewModel: SettingsViewModel = hiltViewModel(),
-    viewModelHome: HomeViewModel = hiltViewModel(),
     onBackClick: () -> Unit = {},
     onMyPostsClick: () -> Unit = {},
     onAddPostClick: () -> Unit = {},
     onCloseAccountClick: () -> Unit = {}
 ) {
-    val isAuthorized by viewModelHome.isAuthorized.collectAsState()
-    val userRole by viewModelHome.userRole.collectAsState()
+    val isAuthorized by viewModelHome.isAuthorized.collectAsStateWithLifecycle()
+    val userRole by viewModelHome.userRole.collectAsStateWithLifecycle()
     var dialogData by remember { mutableStateOf(AccountDialogData()) }
     val dropDownMenuSelectedOptions = remember {
         mutableStateOf(
@@ -64,7 +63,6 @@ fun SettingsScreen(
     var showConfirmDeleteDialog by remember { mutableStateOf(false) }
     var showDrawerRestartDialog by remember { mutableStateOf(false) }
     var pendingDrawerState by remember { mutableStateOf<Boolean?>(null) }
-    var showTariffDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val categoryAdmin = stringArrayResource(id = R.array.category_admin)
     val settings_address = stringResource(R.string.settings_address)
@@ -73,6 +71,9 @@ fun SettingsScreen(
     val personal_data = stringResource(R.string.settings_personal_data)
     val password = stringResource(R.string.password)
     val delete_account = stringResource(R.string.settings_delete_account)
+    // Отслеживаем showAuthDialog
+    val showAuthDialog by viewModelHome.showAuthDialog
+
     LaunchedEffect(Unit) {
         viewModel.getSettings()
         viewModel.settingsBundleState.collect { settingsData ->
@@ -82,7 +83,7 @@ fun SettingsScreen(
         }
     }
 
-    MyDialog(
+    SettingsRestartDialog(
         showDialog = showConfirmDeleteDialog,
         onDismiss = { showConfirmDeleteDialog = false },
         onConfirm = {},
@@ -91,7 +92,7 @@ fun SettingsScreen(
         confirmButtonText = stringResource(R.string.delete)
     )
 
-    MyDialog(
+    SettingsRestartDialog(
         showDialog = showDrawerRestartDialog,
         onDismiss = {
             showDrawerRestartDialog = false
@@ -106,41 +107,6 @@ fun SettingsScreen(
         message = "Чтобы изменения вступили в силу, перезапустите приложение.",
         confirmButtonText = "OK"
     )
-
-    if (showTariffDialog) {
-        val currentRole = userRole
-        val nextRole = viewModelHome.getNextRole(currentRole)
-
-        TariffDialog(
-            currentRoleName = viewModelHome.getRoleDisplayName(currentRole),
-            nextRoleName = nextRole?.let { viewModelHome.getRoleDisplayName(it) },
-            nextRequiresPayment = nextRole?.let { viewModelHome.requiresPayment(it) } ?: false,
-            showNextButton = nextRole != null,
-            showPremiumButton = nextRole != null && nextRole != UserRole.PREMIUM,
-            showGuestButton = currentRole == UserRole.ANONYMOUS ||
-                    currentRole == UserRole.USER ||
-                    currentRole == UserRole.BUSINESS ||
-                    currentRole == UserRole.PREMIUM,
-            onDismiss = {
-                showTariffDialog = false
-            },
-            onNextTariffClick = {
-                showTariffDialog = false
-                viewModelHome.showAuthDialog.value = true
-                viewModelHome.isLogoutDialog.value = false
-            },
-            onPremiumClick = {
-                showTariffDialog = false
-                viewModelHome.showAuthDialog.value = true
-                viewModelHome.isLogoutDialog.value = false
-            },
-            onLogoutClick = {
-                showTariffDialog = false
-                viewModelHome.showAuthDialog.value = true
-                viewModelHome.isLogoutDialog.value = true
-            }
-        )
-    }
 
     AccountDialog(
         dialogData = dialogData,
@@ -191,7 +157,7 @@ fun SettingsScreen(
         Surface(
             modifier = Modifier
                 .fillMaxWidth(),
-                color = ButtonColorBlue,
+                color = ButtonColorBlue.copy(alpha = 0.7f),
                 shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)
         ) {
             Column(
@@ -221,9 +187,7 @@ fun SettingsScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(200.dp)
-                        .clip(RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp))
-                        .background(ButtonColorBlue.copy(alpha = 0.6f)),
+                        .height(200.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
@@ -240,19 +204,23 @@ fun SettingsScreen(
                         Text(
                             text = userName,
                             color = Color.White,
-                            fontSize = 16.sp
+                            fontSize = 18.sp
                         )
                     }
                     if (email.isNotEmpty()) {
                         Text(
                             text = email,
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                fontSize = 14.sp
+                            ),
                             color = Color.White.copy(alpha = 0.8f)
                         )
                     }
                     Text(
                         text = "Тариф: ${getRoleDisplayName(role)}",
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontSize = 16.sp
+                        ),
                         color = Color.White
                     )
                 }
@@ -264,7 +232,7 @@ fun SettingsScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .padding(horizontal = 16.dp, vertical = 16.dp),
+                .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             // Personal Data
@@ -349,8 +317,8 @@ fun SettingsScreen(
                     icon = if (isAuthorized) Icons.Default.Logout else Icons.Default.Login,
                     title = if(isAuthorized) categoryAdmin[3] else categoryAdmin[2],
                      onClick = {
-                        if (!isAuthorized) {
-                            showTariffDialog = true
+                        if (isAuthorized) {
+                            viewModelHome.showLogoutTariffDialog()
                         } else {
                             viewModelHome.onAuthButtonClick()
                         }
@@ -420,6 +388,46 @@ fun SettingsScreen(
         ) {
             Text("Сохранить")
         }*/
+
+        // Показываем TariffDialog
+        if (showAuthDialog) {
+            val nextRole = viewModelHome.getNextRole(userRole)
+
+            TariffDialog(
+                currentRoleName = viewModelHome.getRoleDisplayName(userRole),
+                nextRoleName = nextRole?.let { viewModelHome.getRoleDisplayName(it) },
+                nextRequiresPayment = nextRole?.let { viewModelHome.requiresPayment(it) } ?: false,
+                showNextButton = nextRole != null,
+                showPremiumButton = nextRole != null && nextRole != UserRole.PREMIUM,
+                showGuestButton = userRole == UserRole.ANONYMOUS ||
+                        userRole == UserRole.USER ||
+                        userRole == UserRole.BUSINESS ||
+                        userRole == UserRole.PREMIUM ||
+                        userRole == UserRole.ADMIN,
+                onDismiss = {
+                    viewModelHome.dismissAuthDialog()
+                },
+                onNextTariffClick = {
+                    viewModelHome.dismissAuthDialog()
+                    viewModelHome.requestUpgrade(userRole)
+                },
+                onPremiumClick = {
+                    viewModelHome.dismissAuthDialog()
+                    viewModelHome.requestPremiumUpgrade()
+                },
+                onLogoutClick = {
+                    viewModelHome.dismissAuthDialog()
+                    viewModelHome.logout()
+                }
+            )
+        }
+
+        if (viewModelHome.showPaymentSheet.value) {
+            PaymentBottomSheet(
+                viewModel = viewModelHome,
+                onDismiss = { viewModelHome.showPaymentSheet.value = false }
+            )
+        }
     }
 }
 
@@ -458,7 +466,7 @@ fun SettingsMenuItem(
         Spacer(modifier = Modifier.width(16.dp))
         Text(
             text = title,
-            fontSize = 16.sp,
+            fontSize = 18.sp,
             fontWeight = FontWeight.Medium,
             color = titleColor,
             modifier = Modifier.weight(1f)
@@ -497,7 +505,7 @@ fun SettingsMenuToggle(
         Spacer(modifier = Modifier.width(16.dp))
         Text(
             text = title,
-            fontSize = 16.sp,
+            fontSize = 18.sp,
             fontWeight = FontWeight.Medium,
             color = Color.DarkGray,
             modifier = Modifier.weight(1f)
@@ -524,5 +532,5 @@ fun ShowSettingsScreen() {
         userName = "Иван Иванов",
         role = UserRole.USER
     )
-    SettingsScreen(user = mockUser)
+        // SettingsScreen(user = mockUser)
 }
