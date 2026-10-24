@@ -15,11 +15,11 @@ plugins {
 }
 
 android {
-    namespace = "com.kodex.bookmarketcompose"
+    namespace = "com.kodex.dogs"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.kodex.bookmarketcompose"
+        applicationId = "com.kodex.dogs"
         minSdk = 24
         targetSdk = 36
         versionCode = 5
