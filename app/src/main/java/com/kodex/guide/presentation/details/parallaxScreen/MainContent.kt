@@ -64,8 +64,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.kodex.bookmarketcompose.R
-import com.kodex.guide.data.service.WorkingHoursServiceImpl
-import com.kodex.guide.domain.service.WorkingHoursService
 import com.kodex.guide.presentation.components.ActionButton
 import com.kodex.guide.presentation.components.ArrowCircleButton
 import com.kodex.guide.presentation.components.DeliveryChip
@@ -73,7 +71,6 @@ import com.kodex.guide.presentation.components.InfoRow
 import com.kodex.guide.presentation.components.SectionHeader
 import com.kodex.guide.presentation.components.ServiceInfoRow
 import com.kodex.guide.presentation.components.StatusChip
-import com.kodex.guide.presentation.components.StatusDelivery
 import com.kodex.guide.presentation.detailScreen.CommentListItem
 import com.kodex.guide.presentation.detailScreen.DetailsScreenViewModel
 import com.kodex.guide.presentation.events.DetailUiEvents
@@ -86,6 +83,8 @@ import com.kodex.guide.ui.theme.Orange
 import com.kodex.guide.ui.theme.TextDark
 import com.kodex.guide.ui.theme.TextGray
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -94,14 +93,11 @@ fun MainContent(
     navObject: NavRoutes.ParallaxNavObject,
     onNavigateToReviews: () -> Unit,
     onShowMapClick: () -> Unit,
+    onShowImageClick: () -> Unit,
     viewModel: DetailsScreenViewModel = viewModel(),
     onBackPressed: () -> Unit,
-    timeService: WorkingHoursService = WorkingHoursServiceImpl(),  // ✅ DIP: зависит от абстракции
+    isOpenNow: Boolean,
 ) {
-    // ✅ статус вычисляется сервисом из строки часов, а не хранится в navObject
-    val isOpenNow = remember(navObject.openingHours) {
-        timeService.isOpenNow(navObject.openingHours)
-    }
     var showRateDialog by remember { mutableStateOf(false) }
     var showCommentDialog by remember { mutableStateOf(false) }
     val uiState = viewModel.uiState.collectAsState()
@@ -109,12 +105,11 @@ fun MainContent(
     val telephone = navObject.telephone
     val scope = rememberCoroutineScope()
 
-    var bitmap: Bitmap? = null
-
-    try {
-        val base64Image = Base64.decode(navObject.imageUrl, Base64.DEFAULT)
-        bitmap = BitmapFactory.decodeByteArray(base64Image, 0, base64Image.size)
-    } catch (e: IllegalArgumentException) {
+    val bitmap by remember(navObject.imageUrl) {
+        mutableStateOf<Bitmap?>(runCatching {
+            val base64Image = Base64.decode(navObject.imageUrl, Base64.DEFAULT)
+            BitmapFactory.decodeByteArray(base64Image, 0, base64Image.size)
+        }.getOrNull())
     }
     DialogRating(
         ratingData = uiState.value.ratingData,
@@ -148,8 +143,14 @@ fun MainContent(
             AsyncImage(
                 model = bitmap,
                 contentDescription = navObject.title,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
+                modifier = Modifier
+                    .fillMaxSize()
+                    .then(
+                        if (bitmap != null) Modifier.clickable(onClick = onShowImageClick)
+                        else Modifier
+                    ),
+                contentScale = ContentScale.Crop,
+               // transition = androidx.compose.animation.core.tween(durationMillis = 300)
             )
 
             // Затемнение снизу для читаемости текста
@@ -198,7 +199,7 @@ fun MainContent(
 
                 // Категория по центру
                 Text(
-                    text = stringArrayResource(id = R.array.category_array)[navObject.categoryIndex.id],
+                    text = stringArrayResource(id = R.array.category_drawer)[navObject.categoryIndex.id],
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
                     color = Color.White,
@@ -365,11 +366,16 @@ fun MainContent(
             SectionHeader(title = "Адрес")
 
 // Местоположение в одну линию с круглой кнопкой-стрелкой
+            val latitude = navObject.latitude.toDoubleOrNull()
+            val longitude = navObject.longitude.toDoubleOrNull()
+            val hasMapCoordinates = navObject.location &&
+                latitude != null && latitude.isFinite() && latitude in -90.0..90.0 &&
+                longitude != null && longitude.isFinite() && longitude in -180.0..180.0
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 6.dp)
-                    .clickable { onShowMapClick() },
+                    .clickable(enabled = hasMapCoordinates) { onShowMapClick() },
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -408,33 +414,35 @@ fun MainContent(
                             overflow = TextOverflow.Ellipsis
                         )
                     }
-                    // ✅ НОВОЕ: «Посмотреть / на карте» напротив «Местоположение»
-                    Column(
-                        horizontalAlignment = Alignment.End,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = "Посмотреть на",
-                            fontSize = 12.sp,
-                            color = TextGray,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Text(
-                            text = " карте",
-                            fontSize = 15.sp,
-                            color = TextGray,
-                            fontWeight = FontWeight.Medium
-                        )
+                    if (hasMapCoordinates) {
+                        Column(
+                            horizontalAlignment = Alignment.End,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = "Посмотреть на",
+                                fontSize = 12.sp,
+                                color = TextGray,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                text = " карте",
+                                fontSize = 15.sp,
+                                color = TextGray,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
                     }
                 }
 
-                Spacer(modifier = Modifier.width(8.dp))
+                if (hasMapCoordinates) {
+                    Spacer(modifier = Modifier.width(8.dp))
 
-                // Правая часть: круглая кнопка со стрелкой
-                ArrowCircleButton(
-                    modifier = Modifier.padding(16.dp),
-                    onClick = onShowMapClick
-                )
+                    ArrowCircleButton(
+                        modifier = Modifier.padding(16.dp),
+                        onClick = onShowMapClick
+                    )
+                }
             }
 
 // Детальный адрес в одну линию (улица, дом, квартира)
@@ -514,11 +522,11 @@ fun MainContent(
                                 color = TextDark,
                                 fontWeight = FontWeight.Medium
                             )
-                            if (!navObject.isOpenNow) {
+                            if (!isOpenNow) {
                                 Text(
                                     text = "Сейчас закрыто",
                                     fontSize = 13.sp,
-                                    color = Color(0xFFEF4444),
+                                    color = Orange,
                                     fontWeight = FontWeight.Medium
                                 )
                             } else {
@@ -593,6 +601,30 @@ fun MainContent(
                 }
 
                 Spacer(modifier = Modifier.height(4.dp))
+
+                // Дата публикации
+                val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+                val publicationDate = dateFormat.format(navObject.timestamp)
+                Text(
+                    text = "Дата публикации: $publicationDate",
+                    fontSize = 14.sp,
+                    color = TextGray,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+
+                // Период публикации
+                val publishPeriodNames = stringArrayResource(id = R.array.publish_period_user)
+                val periodText = publishPeriodNames.getOrNull(navObject.publishPeriod - 1) ?: ""
+                if (periodText.isNotEmpty()) {
+                    Text(
+                        text = "Период публикации: $periodText",
+                        fontSize = 14.sp,
+                        color = TextGray,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.padding(vertical = 2.dp)
+                    )
+                }
             }
 
             // ===== Секция: Отзывы =====
@@ -642,6 +674,3 @@ fun MainContent(
         }
     }
 }
-
-
-

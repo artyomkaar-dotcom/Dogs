@@ -2,8 +2,8 @@ package com.kodex.guide.data.images
 
 import android.graphics.Bitmap
 import androidx.core.graphics.scale
-import jakarta.inject.Singleton
 import javax.inject.Inject
+import javax.inject.Singleton
 
 @Singleton
 class BitmapResizer @Inject constructor() {
@@ -15,12 +15,12 @@ class BitmapResizer @Inject constructor() {
         val imageRatio = width.toFloat() / height.toFloat()
         if (imageRatio > 1){
             width = maxSize
-            height = (width / imageRatio).toInt()
+            height = (width / imageRatio).toInt().coerceAtLeast(1)
         }else{
             height = maxSize
-            width = (height * imageRatio).toInt()
+            width = (height * imageRatio).toInt().coerceAtLeast(1)
         }
-        return bitmap.scale(width, height, false)
+        return bitmap.scale(width, height, true)
 
     }
 }

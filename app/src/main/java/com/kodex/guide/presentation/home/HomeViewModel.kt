@@ -1,11 +1,9 @@
 package com.kodex.guide.presentation.home
 
 import android.util.Log
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
@@ -43,7 +41,6 @@ import com.kodex.guide.domain.usecase.ObserveSavedKeysUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -57,11 +54,13 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
+import kotlin.text.Typography.registered
 
 // ✅ События для UI (диалоги, навигация)
 sealed class AuthEvent {
@@ -103,9 +102,11 @@ class HomeViewModel @Inject constructor(
     val isLogoutDialog = mutableStateOf(false)
     var isRegisterState = mutableStateOf(false)
     val categoryState = mutableStateOf(BookCategories.ALL)
+    val hasSelectedCategory = mutableStateOf(false)
     private val bookListUpdate = MutableStateFlow<List<ChangedTempBook>>(emptyList())
     private val bookFilterStateFlow = MutableStateFlow(BookFilterState())
     private val searchStateFlow = MutableStateFlow("")
+    private val booksRefreshFlow = MutableStateFlow(0)
     private val debounceSearchFlow = searchStateFlow
         .debounce(500)
         .distinctUntilChanged()
@@ -113,6 +114,16 @@ class HomeViewModel @Inject constructor(
     // ✅ Желательный тариф для установки после регистрации
     val desiredRole = mutableStateOf<UserRole?>(null)
     val bookToDelete = mutableStateOf<Book?>(null)
+
+    // ✅ Показ бокового меню
+    private val _showDrawer = MutableStateFlow(preferenceDataSource.getShowDrawer())
+    val showDrawer: StateFlow<Boolean> = _showDrawer.asStateFlow()
+
+    fun setShowDrawer(show: Boolean) {
+        _showDrawer.value = show
+        preferenceDataSource.saveShowDrawer(show)
+    }
+
     fun onDeleteRequested(book: Book) {
         bookToDelete.value = book
     }
@@ -128,8 +139,9 @@ class HomeViewModel @Inject constructor(
     val books: Flow<PagingData<Book>> = combine(
         savedKeysFlow,
         bookFilterStateFlow,
-        debounceSearchFlow
-    ) { savedKeys, filter, searchText ->
+        debounceSearchFlow,
+        booksRefreshFlow
+    ) { savedKeys, filter, searchText, _ ->
 
         Triple(
             savedKeys.toList(),   // ← важно: Set<String> -> List<String>
@@ -163,10 +175,47 @@ class HomeViewModel @Inject constructor(
                 }
             }
         }
+
+    fun refreshBooks() {
+        booksRefreshFlow.update { it + 1 }
+    }
+
     private val _authEvents = MutableSharedFlow<AuthEvent>()
     val authEvents = _authEvents.asSharedFlow()
     private val _uiState = MutableSharedFlow<MainUiState>()
     val uiState = _uiState.asSharedFlow()
+
+    private val _ratingsByBook = MutableStateFlow<Map<String, List<Int>>>(emptyMap())
+    val ratingsByBook: StateFlow<Map<String, List<Int>>> = _ratingsByBook.asStateFlow()
+    private val ratingsJobs = mutableMapOf<String, Job>()
+
+    fun loadRatingsForBooks(books: List<Book>) {
+        books.asSequence()
+            .map(Book::key)
+            .filter(String::isNotBlank)
+            .distinct()
+            .filterNot { bookId ->
+                _ratingsByBook.value.containsKey(bookId) || ratingsJobs.containsKey(bookId)
+            }
+            .forEach { bookId ->
+                ratingsJobs[bookId] = viewModelScope.launch {
+                    try {
+                        booksRepo.getBookComments(bookId).fold(
+                            onSuccess = { comments ->
+                                _ratingsByBook.update { ratings ->
+                                    ratings + (bookId to comments.mapNotNull { it.rating })
+                                }
+                            },
+                            onFailure = { error ->
+                                Log.e("HomeViewModel", "Failed to load ratings for $bookId", error)
+                            }
+                        )
+                    } finally {
+                        ratingsJobs.remove(bookId)
+                    }
+                }
+            }
+    }
 
     // ===== Роль и авторизация — только StateFlow =====
     private val _userRole = MutableStateFlow(UserRole.ANONYMOUS)
@@ -181,7 +230,8 @@ class HomeViewModel @Inject constructor(
     // ... где-то в функции обновления ...
     fun updateRole(role: UserRole) {
         // 4. Обновляем значение через .value
-        _userRole.value = role       // ✅ Правильно
+        _userRole.value = role
+        _isAdminState.value = role == UserRole.ADMIN
         _isAuthorized.value = true   // ✅ Правильно
     }
 
@@ -246,6 +296,7 @@ class HomeViewModel @Inject constructor(
 
     private val authStateListener = FirebaseAuth.AuthStateListener { auth ->
         val currentUser = auth.currentUser
+        Log.d("ROLE_DEBUG", "authStateListener: user=$currentUser, uid=${currentUser?.uid}")
 
         refreshAccessFlags()
         if (currentUser == null) {
@@ -262,6 +313,8 @@ class HomeViewModel @Inject constructor(
             .document(currentUser.uid)
             .get()
             .addOnSuccessListener { doc ->
+                Log.d("ROLE_DEBUG", "authStateListener: doc.exists=${doc.exists()}, data=${doc.data}")
+
                 if (!doc.exists()) {
                     // ✅ Используем маппер вместо хардкода
                     val user = currentUser.toUser(role = UserRole.USER)
@@ -291,6 +344,12 @@ class HomeViewModel @Inject constructor(
     }
 
     init {
+        Log.d("ROLE_DEBUG", "=== init START ===")
+        Log.d("ROLE_DEBUG", "Firebase.auth.currentUser?.uid = ${Firebase.auth.currentUser?.uid}")
+        Log.d("ROLE_DEBUG", "authStateProvider.currentUser()?.uid = ${authStateProvider.currentUser()?.uid}")
+        Log.d("ROLE_DEBUG", "cached user = ${preferenceDataSource.getUser()}")
+     //   Log.d("ROLE_DEBUG", "cached role = ${preferenceDataSource.getRole()}")
+
         // миграция: кеш пуст, но пользователь залогинен — заполняем кеш
         if (preferenceDataSource.getUser() == null) {
             authDataSource.getCurrentUser()?.let { preferenceDataSource.saveUser(it) }
@@ -300,6 +359,7 @@ class HomeViewModel @Inject constructor(
         authDataSource.getCurrentUser()?.let { user ->
             _userRole.value = user.role
             _isAuthorized.value = true
+
         }
 
         // ✅ ДОБАВЛЕНО: Регистрируем слушатель состояния авторизации
@@ -307,15 +367,45 @@ class HomeViewModel @Inject constructor(
         // Если уже авторизован - загружаем роль
         Firebase.auth.currentUser?.uid?.let { loadUserRole(it) }
         refreshAccessFlags()
+       // observeCategoryCounts()
     }
 
+    /**
+     * Количество постов по категориям.
+     */
+     val _categoryCounts = MutableStateFlow<Map<BookCategories, Int>>(emptyMap())
+    val categoryCounts: StateFlow<Map<BookCategories, Int>> = _categoryCounts.asStateFlow()
+
+  /*      private fun observeCategoryCounts() {
+        viewModelScope.launch {
+            booksRepo.getBooks(
+                emptyList(),
+                BookFilterState.Category(category = BookCategories.ALL, author = null)
+            )
+            .map { pagingData ->
+                pagingData.itemSnapshotList.items
+            }
+            .collect { items ->
+                if (items.isNotEmpty()) {
+                    val counts = items
+                        .map { it.categoryIndex }
+                        .groupingBy { it }
+                        .eachCount()
+                        .mapKeys { (key, _) -> key as BookCategories }
+                    _categoryCounts.value = counts
+                }
+            }
+        }
+    }*/
+
     fun refreshHeader() {
-        headerUser.value = preferenceDataSource.getUser()
+        headerUser.value = preferenceDataSource.getUser()?.copy(role = _userRole.value)
     }
 
     private var roleJob: Job? = null
 
     private fun loadUserRole(uid: String) {
+        Log.d("ROLE_DEBUG", "loadUserRole: START for uid=$uid")
         roleJob?.cancel()
         roleJob = viewModelScope.launch {
             userRoleRepository.observeUserRole(uid)
@@ -323,11 +413,17 @@ class HomeViewModel @Inject constructor(
                     Log.e("MyLog", "Ошибка загрузки роли: ${error.message}")
                 }
                 .collect { role ->
-                    _userRole.value = role
+                    Log.d("ROLE_DEBUG", "loadUserRole COLLECT: role=$role (uid=$uid)")
+                    val isAdmin = _isAdminState.value || role == UserRole.ADMIN
+                    _isAdminState.value = isAdmin
+                    val effectiveRole = if (isAdmin) UserRole.ADMIN else role
+                    _userRole.value = effectiveRole
                     _isAuthorized.value = true
 
-                    preferenceDataSource.saveRole(role)
+                    preferenceDataSource.saveRole(effectiveRole)
                     refreshHeader()
+                    Log.d("ROLE_DEBUG", "loadUserRole: after saveRole → _userRole=${_userRole.value}")
+
                 }
         }
     }
@@ -480,7 +576,29 @@ class HomeViewModel @Inject constructor(
             searchText
         }
     }
+
+    // В HomeViewModel.kt
+
+    /**
+     * Обрабатывает выбор категории из Drawer или BottomMenu.
+     * Инкапсулирует логику фильтрации и синхронизации состояния нижнего меню.
+     */
+    fun onCategorySelected(category: BookCategories) {
+        // 1. Обновляем состояние категории и применяем фильтр
+        hasSelectedCategory.value = true
+        categoryState.value = category
+        clearTempBookList()
+      //  refreshFavoritesKeys()
+        bookFilterStateFlow.update { it.copy(category = category) }
+
+        // 2. Синхронизируем состояние нижнего меню (BottomNavigation)
+        selectedBottomItemState.intValue = BottomMenuItem.Home.titleId
+
+        Log.d("MyLog", "Категория изменена на: $category")
+    }
+
     fun getAllBooksFromCategory(category: BookCategories) {
+        hasSelectedCategory.value = true
         categoryState.value = category
         clearTempBookList()
 
@@ -565,7 +683,7 @@ class HomeViewModel @Inject constructor(
     // ✅ Отображаемое имя тарифа
     fun getRoleDisplayName(role: UserRole): String {
         return when (role) {
-            UserRole.ANONYMOUS -> "Анонимный"
+            UserRole.ANONYMOUS -> "Гостевой"
             UserRole.USER -> "Пользователь"
             UserRole.BUSINESS -> "Бизнес"
             UserRole.PREMIUM -> "Премиум"          // ✅ НОВОЕ
@@ -616,6 +734,12 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    fun showLogoutTariffDialog() {
+        isLogoutDialog.value = true
+        showAuthDialog.value = true
+    }
+
+
 /*!    // ✅ Анонимный вход
     fun loginAnonymously() = viewModelScope.launch {
         try {
@@ -657,14 +781,27 @@ class HomeViewModel @Inject constructor(
         val uid = authStateProvider.currentUser()?.uid
 
         if (uid == null) {
+            Log.d("ROLE_DEBUG", "refreshAccessFlags: uid=null → сбрасываем флаги")
+
+
             _isAdminState.value = false
             isRegisterState.value = false
             return
         }
-
         viewModelScope.launch {
-            _isAdminState.value = userAccessRepository.isAdmin(uid)
+            val isAdmin = userAccessRepository.isAdmin(uid) || _userRole.value == UserRole.ADMIN
+            _isAdminState.value = isAdmin
+            if (isAdmin) {
+                _userRole.value = UserRole.ADMIN
+                preferenceDataSource.saveRole(UserRole.ADMIN)
+                refreshHeader()
+            }
             isRegisterState.value = userAccessRepository.isRegistered(uid)
+            Log.d(
+                "ROLE_DEBUG",
+                "refreshAccessFlags: isAdmin($uid)=$isAdmin, isRegistered($uid)=${isRegisterState.value}"
+            )
+
         }
     }
  /*!   // 2. ИСПРАВЛЕНИЕ: Убираем !! чтобы избежать краша у неавторизованных пользователей
@@ -704,8 +841,3 @@ class HomeViewModel @Inject constructor(
             }
     }*/
 }
-
-
-
-
-

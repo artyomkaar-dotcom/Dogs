@@ -9,10 +9,11 @@
     <string name="home">Home</string>
     <string name="faves">Favorite</string>
     <string name="saved">Saved</string>
+    <string name="news">News</string>
     <string name="delivery">Delivery</string>
     <string name="location">Show of map</string>
     <string name="card_payment">Card payment</string>
-    <string name="сreate_post">Create post</string>
+    <string name="create_post">Create post</string>
     <string name="settings">Settings</string>
     <!--AddScreen -->
     <string name="check_data">Check the data</string>
@@ -51,7 +52,14 @@
     <string name="exit">Exit"</string>
     <!-- DriverMenu-->
     <string name="all">All</string>
-
+     <string name="animals">Животные</string>
+    <string name="plants">Растения</string>
+    <string name="work">Работа</string>
+    <string name="services">Услуги</string>
+    <string name="real_estate">Недвижимость</string>
+    <string name="auto">Авто</string>
+    <string name="electronics">Электроника</string>
+    <string name="entertainments">Развлечения</string>
     <!-- -->
     <string name="empty_list">Empty_list</string>
     <string name="added_to_memory">Post added to Memory</string>
@@ -68,7 +76,10 @@
     <string name="message">Message</string>
     <string name="yes">Yes</string>
     <string name="ok">OK</string>
-    <string name="cancel">Cansel</string>
+    <string name="cancel">Cancel</string>
+    <string name="exit_app_title">Exit app</string>
+    <string name="exit_app_message">Are you sure you want to exit?</string>
+    <string name="exit_app_confirm">Exit</string>
     <string name="comments">Comments</string>
     <string name="estimate">Estimate</string>
 
@@ -80,6 +91,17 @@
     <string name="deleted_account_massage">Are you sure you want to delete your account?</string>
     <string name="delete">Delete</string>
     <string name="the_fields_on_may_be_empty">The fields on may be empty</string>
+
+    <string name="back">Back</string>
+    <string name="settings_personal_data">Personal data</string>
+    <string name="settings_address">Address</string>
+    <string name="settings_password">Password</string>
+    <string name="settings_create_post">Create listing</string>
+    <string name="settings_my_posts">My listings</string>
+    <string name="settings_delete_account">Delete account</string>
+    <string name="settings_logout">Log out</string>
+    <string name="name">name</string>
+    <string name="email">email\n</string>
 
 
 </resources>

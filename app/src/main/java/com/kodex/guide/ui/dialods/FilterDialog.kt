@@ -12,11 +12,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.kodex.bookmarketcompose.R
 import com.kodex.guide.presentation.castom.PricePickerThumb
 import com.kodex.guide.presentation.castom.RadioButtonSet
@@ -58,7 +59,7 @@ fun FilterDialog(
                         containerColor = DrawerColorBlue
                     )
                 ) {
-                    Text(text = "Cansel")
+                    Text(text = stringResource(R.string.cancel))
                 }
             },
             title = {

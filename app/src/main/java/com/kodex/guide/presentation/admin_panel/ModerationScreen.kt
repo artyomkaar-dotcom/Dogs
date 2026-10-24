@@ -1,5 +1,6 @@
 package com.kodex.guide.presentation.admin_panel
 
+import android.widget.Toast
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
@@ -13,13 +14,15 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.kodex.guide.ui.theme.PurpleGrey80
 
 
@@ -28,8 +31,18 @@ import com.kodex.guide.ui.theme.PurpleGrey80
 fun ModerationScreen(
     viewModel: ModerationScreenViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+    val errorMessage by viewModel.errorMessage
+
     LaunchedEffect(key1 = Unit) {
         viewModel.getAllComments()
+    }
+
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let { message ->
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+            viewModel.clearError()
+        }
     }
 
     Box(

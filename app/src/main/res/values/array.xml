@@ -2,7 +2,7 @@
 <resources>
 
 
-    <string-array name="category_array">
+    <string-array name="category_drawer">
         <item>Animals</item>
         <item>Plants</item>
         <item>Work</item>
@@ -11,19 +11,78 @@
         <item>Auto</item>
         <item>Electronics</item>
         <item>Entertainments</item>
-        <item>Saved</item>
+        <item>News</item>
+        <item>Other</item>
+        <item>Construction</item>
+        <item>Food</item>
+        <item>All</item>
         <item>All</item>
     </string-array>
 
+    <string-array name="category_top">
+        <item>Animals</item>
+        <item>Plants</item>
+        <item>Work</item>
+        <item>Services</item>
+        <item>Real estate</item>
+        <item>Auto</item>
+        <item>Electronics</item>
+        <item>Entertainments</item>
+        <item>News</item>
+        <item>Other</item>
+        <item>Construction</item>
+        <item>Food</item>
+        <item>All</item>
+        <item>Saved</item>
+    </string-array>
 
+    <string-array name="category_add">
+        <item>Animals</item>
+        <item>Plants</item>
+        <item>Work</item>
+        <item>Services</item>
+        <item>Real estate</item>
+        <item>Auto</item>
+        <item>Electronics</item>
+        <item>Entertainments</item>
+        <item>News</item>
+        <item>Other</item>
+        <item>Construction</item>
+        <item>Food</item>
+    </string-array>
 
-
+    <string-array name="publish_period_user">
+        <item>1</item>
+        <item>3</item>
+        <item>7</item>
+        <item>14</item>
+        <item>30</item>
+    </string-array>
+<string-array name="publish_period_business">
+        <item>1</item>
+        <item>3</item>
+        <item>7</item>
+        <item>14</item>
+        <item>30</item>
+        </string-array>
+<string-array name="publish_period_premium">
+        <item>1</item>
+        <item>3</item>
+        <item>7</item>
+        <item>14</item>
+        <item>30</item>
+        <item>90</item>
+        <item>180</item>
+        <item>365</item>
+    </string-array>
     <string-array name="category_admin">
         <item>Admin panel</item>
         <item>Add</item>
         <item>Enter</item>
         <item>Output</item>
-        <item>Map</item>
+        <item>Saved</item>//9
+        <item>My ads</item>
+        <item>Side menu</item>
         <item>Settings</item>
     </string-array>
 

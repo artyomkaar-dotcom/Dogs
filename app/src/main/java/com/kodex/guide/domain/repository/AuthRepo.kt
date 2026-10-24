@@ -14,7 +14,7 @@ interface AuthRepo {
     /** Поток текущего пользователя */
     fun observeUser(): Flow<User?>
 
-    /** Анонимный вход */
+    /** Гостевой вход */
     suspend fun signInAnonymously(): Result<User>
 
     /** ✅ Создание профиля в Firestore */
@@ -22,9 +22,6 @@ interface AuthRepo {
 
     /** ✅ Получение роли */
     suspend fun getUserRole(uid: String): UserRole
-
-    /** ✅ Повышение до BUSINESS */
-    suspend fun upgradeToBusiness(uid: String)
 
     /** Проверка прав */
     fun hasPermission(permission: Permission): Boolean

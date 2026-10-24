@@ -1,4 +1,4 @@
-import org.gradle.api.JavaVersion.VERSION_11
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.application)
@@ -10,18 +10,19 @@ plugins {
     alias(libs.plugins.plugin.serialization)
     alias(libs.plugins.ksp.plugin)
     alias(libs.plugins.hilt.plugin)
+        //  id("org.jetbrains.kotlin.plugin.compose")
 
 }
 
 android {
     namespace = "com.kodex.bookmarketcompose"
-    compileSdk = 36
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.kodex.bookmarketcompose"
         minSdk = 24
-        targetSdk = 34
-        versionCode = 3
+        targetSdk = 36
+        versionCode = 5
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -37,25 +38,41 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = VERSION_11
-        targetCompatibility = VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions {
+   /* kotlinOptions {
         jvmTarget = "11"
-    }
+    }*/
+
     buildFeatures {
         compose = true
     }
 }
 
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_11) // или JVM_17, в зависимости от вашего проекта
+    }
+}
+
+configurations.all {
+    exclude(group = "com.intellij", module = "annotations")
+    resolutionStrategy {
+        force("org.jetbrains:annotations:23.0.0")
+    }
+}
+
 dependencies {
-// ✅ ТЕСТЫ
+implementation(libs.room.compiler)
+    implementation(libs.firebase.ai)
+    // ✅ ТЕСТЫ
   /*  testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockk)*/
     // ✅ ТЕСТЫ — прямыми строками, независимо от toml
     testImplementation("junit:junit:4.13.2")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
     testImplementation("io.mockk:mockk:1.14.11")
 
     implementation(libs.androidx.compose.material3)
@@ -69,7 +86,7 @@ dependencies {
 
     implementation(libs.hilt.navigation.compose)
     implementation(libs.androidx.espresso.core)
-    implementation(libs.androidx.room.common.jvm)
+   // implementation(libs.androidx.room.common.jvm)
     //implementation(libs.androidx.room3.runtime)
 
     implementation(libs.androidx.room.ktx)
@@ -119,9 +136,13 @@ dependencies {
         implementation("org.osmdroid:osmdroid-android:6.1.20")
 
         // Для HTTP-запросов к OSRM (маршруты)
-        implementation("com.squareup.okhttp3:okhttp:5.4.0")
+            //implementation("com.squareup.okhttp3:okhttp:5.5.0")
+        implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
 
         // Для работы с JSON от OSRM
-        implementation("com.google.code.gson:gson:2.14.0")
+       // implementation("com.google.code.gson:gson:2.14.0")
+        implementation("com.google.code.gson:gson:2.11.0")
+
     }
 }

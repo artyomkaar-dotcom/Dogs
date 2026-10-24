@@ -37,4 +37,5 @@ val DividerColor = Color(0xFFE5E7EB)
 val IconBgLight = Color(0xFFF0EDFF)
 
 // Статусы
-val StatusOpen = Color(0xFF10B98)
+val StatusOpen = Color(0x7511A423)
+val Premium = Color(0xFF9C27B0)

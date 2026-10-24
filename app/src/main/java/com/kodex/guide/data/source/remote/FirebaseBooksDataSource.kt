@@ -1,7 +1,6 @@
 package com.kodex.guide.data.source.remote
 
  import com.google.firebase.auth.FirebaseAuth
- import com.google.firebase.firestore.FieldPath
  import com.google.firebase.firestore.FirebaseFirestore
  import com.google.firebase.firestore.Query
  import com.kodex.guide.data.mapper.toFirebaseFields
@@ -38,7 +37,6 @@ class FirebaseBooksDataSource(
 
         query = when (bookFilter.category) {
             BookCategories.ALL -> query
-            BookCategories.FAVORITES -> query.whereIn(FieldPath.of(KEY), keysFavesList.ifEmpty { listOf("-1") })
             else -> query.whereEqualTo(CATEGORY_INDEX, bookFilter.category.id)
         }
 

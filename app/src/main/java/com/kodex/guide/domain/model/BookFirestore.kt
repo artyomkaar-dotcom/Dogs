@@ -8,11 +8,11 @@ data class BookFirestore(
     val description: String = "",
     val price: Int = 0,
     val telephone: String = "",
-    val categoryIndex: Int = BookCategories.ALL.id, // Сохраняем как Int
+    val categoryIndex: Int = BookCategories.OTHER.id, // Сохраняем как Int
     val imageUrl: String = "",
     val isFavorite: Boolean = false,
     val isAuthor: Boolean = false,
-    val authorId: Int = 0,
+    val authorRole: Int = 0,  // ✅ Роль автора (UserRole.level)
     val publishPeriod: Int = 1,
     val timeStamp: Long = System.currentTimeMillis(),
     val deleteDate: Int = 0,
@@ -32,7 +32,7 @@ data class BookFirestore(
         imageUrl = imageUrl,
         isFavorite = isFavorite,
         isAuthor = isAuthor,
-        authorId = authorId,
+        authorRole = authorRole,  // ✅ authorRole → authorRole
         publishPeriod = publishPeriod,
         timeStamp = timeStamp,
         deleteDate = deleteDate,

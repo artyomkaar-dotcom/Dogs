@@ -13,8 +13,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
@@ -29,27 +27,21 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.kodex.guide.presentation.navigation.NavRoutes
@@ -57,16 +49,17 @@ import com.kodex.guide.presentation.detailScreen.DetailsScreenViewModel
 import com.kodex.bookmarketcompose.R
 import com.kodex.guide.domain.model.Book
 import com.kodex.guide.domain.model.BookCategories
+import com.kodex.guide.data.service.WorkingHoursServiceImpl
+import com.kodex.guide.domain.service.WorkingHoursService
+import com.kodex.guide.presentation.components.ActionSheetButton
 import com.kodex.guide.presentation.events.DetailUiEvents
 import com.kodex.guide.presentation.home.BookListItemUi
-import com.kodex.guide.presentation.home.HomeViewModel
 import com.kodex.guide.presentation.home.SavedPostsViewModel
-import com.kodex.guide.presentation.login.LoginButton
-import com.kodex.guide.ui.theme.ButtonColor
 import com.kodex.guide.ui.theme.IconBgLight
 import com.kodex.guide.ui.theme.Orange
 import com.kodex.guide.ui.theme.TextDark
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -77,10 +70,11 @@ fun ParallaxScreen(
     onBackPressed: () -> Unit,
     onNavigateToReviews: () -> Unit,
     onCommentClick: () -> Unit,
-    bookCategory: BookCategories = BookCategories.ALL,
+    bookCategory: BookCategories = BookCategories.OTHER,
     onRelatedBookClick: (Book) -> Unit = {},
+    timeService: WorkingHoursService = WorkingHoursServiceImpl(),
 
-) {
+    ) {
     val configuration = LocalConfiguration.current
     val screenHeight = configuration.screenHeightDp.dp
     val collapsedHeight = 280.dp
@@ -88,15 +82,17 @@ fun ParallaxScreen(
     var showFullScreenImage by remember { mutableStateOf(false) }
     var showMap by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    var isOpenNow by remember(navObject.openingHours) {
+        mutableStateOf(timeService.isOpenNow(navObject.openingHours))
+    }
 
     val coroutineScope = rememberCoroutineScope()
     val imageHeight = remember { Animatable(expandedHeight.value) }
-    var bitmap: Bitmap? = null
-
-    try {
-        val base64Image = Base64.decode(navObject.imageUrl, Base64.DEFAULT)
-        bitmap = BitmapFactory.decodeByteArray(base64Image, 0, base64Image.size)
-    } catch (e: IllegalArgumentException) {
+    val bitmap by remember(navObject.imageUrl) {
+        mutableStateOf<Bitmap?>(runCatching {
+            val base64Image = Base64.decode(navObject.imageUrl, Base64.DEFAULT)
+            BitmapFactory.decodeByteArray(base64Image, 0, base64Image.size)
+        }.getOrNull())
     }
 
     val listState = rememberLazyListState()
@@ -106,6 +102,8 @@ fun ParallaxScreen(
     val savedViewModel: SavedPostsViewModel = hiltViewModel()
     val savedKeys by savedViewModel.savedKeys.collectAsStateWithLifecycle()
     val relatedBooks by viewModel.relatedBooks.collectAsStateWithLifecycle()
+    val detailsUiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val ratingsList = detailsUiState.comments.mapNotNull { it.rating }
 
     val gridState = rememberLazyStaggeredGridState()
     var showActionsSheet by remember { mutableStateOf(false) }
@@ -126,6 +124,12 @@ fun ParallaxScreen(
     }
     LaunchedEffect(navObject.bookId) {
         viewModel.loadRelatedBooks(bookCategory, navObject.bookId)
+    }
+    LaunchedEffect(navObject.openingHours) {
+        while (true) {
+            isOpenNow = timeService.isOpenNow(navObject.openingHours)
+            delay(60_000)
+        }
     }
 
     LaunchedEffect(key1 = Unit) {
@@ -168,11 +172,14 @@ fun ParallaxScreen(
                 // ✅ ОСНОВНОЙ ПОСТ — НА ВСЮ ШИРИНУ
                 item(span = StaggeredGridItemSpan.FullLine) {
                     MainContent(
-                        navObject = navObject,
+                        navObject = navObject.copy(ratingsList = ratingsList),
+                        isOpenNow = isOpenNow,
                         onCommentClick = { onCommentClick() },
                         onNavigateToReviews = onNavigateToReviews,
                         onShowMapClick = { showMap = true },
-                        onBackPressed = { onBackPressed() }
+                        onShowImageClick = { showFullScreenImage = true },
+                        onBackPressed = { onBackPressed() },
+                        viewModel = viewModel
                     )
                 }
                 // ✅ ПОСТЫ ЭТОЙ ЖЕ КАТЕГОРИИ
@@ -215,8 +222,8 @@ fun ParallaxScreen(
                         // слева: рейтинг + количество отзывов
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                text = if (navObject.ratingsList.isNotEmpty()) {
-                                    String.format("%.1f", navObject.ratingsList.average())
+                                text = if (ratingsList.isNotEmpty()) {
+                                    String.format("%.1f", ratingsList.average())
                                 } else {
                                     "0.0"
                                 },
@@ -234,7 +241,7 @@ fun ParallaxScreen(
                             Spacer(Modifier.width(6.dp))
                             // ✅ КОЛИЧЕСТВО ОТЗЫВОВ
                             Text(
-                                text = "(${navObject.ratingsList.size})",
+                                text = "(${ratingsList.size})",
                                 fontSize = 14.sp,
                                 color = Color.Gray
                             )
@@ -259,11 +266,11 @@ fun ParallaxScreen(
                                 color = TextDark,
                                 fontWeight = FontWeight.Medium
                             )
-                            if (!navObject.isOpenNow) {
+                            if (!isOpenNow) {
                                 Text(
                                     text = "Сейчас закрыто",
                                     fontSize = 13.sp,
-                                    color = Color(0xFFEF4444),
+                                    color = Orange,
                                     fontWeight = FontWeight.Medium
                                 )
                             } else {
@@ -346,61 +353,37 @@ fun ParallaxScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .fillMaxHeight(),
-                    contentScale = ContentScale.Fit
+                    contentScale = ContentScale.Fit,
+                   // transition = androidx.compose.animation.core.tween(durationMillis = 300)
                 )
                 IconButton(
                     onClick = { showFullScreenImage = false },
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(40.dp)
-                ) {
+                        .size(44.dp)
+                        .background(
+                            color = Color(0xFF2196F3).copy(alpha = 0.55f),
+                            shape = CircleShape
+                        )
+                    ) {
                     Icon(Icons.Default.Close, contentDescription = "Закрыть", tint = Color.White)
                 }
             }
         }
     }
 
-    if (showMap) {
+    val destinationLat = navObject.latitude.toDoubleOrNull()
+    val destinationLng = navObject.longitude.toDoubleOrNull()
+    if (showMap && navObject.location &&
+        destinationLat != null && destinationLat.isFinite() && destinationLat in -90.0..90.0 &&
+        destinationLng != null && destinationLng.isFinite() && destinationLng in -180.0..180.0
+    ) {
         MapScreen(
-            destinationLat = navObject.latitude.toDoubleOrNull() ?: 55.7558,
-            destinationLng = navObject.longitude.toDoubleOrNull() ?: 37.6173,
+            destinationLat = destinationLat,
+            destinationLng = destinationLng,
             destinationTitle = navObject.title,
             onDismiss = { showMap = false }
         )
     }
 }
-
-@Composable
-fun ActionSheetButton(
-    text: String,
-    icon: ImageVector? = null,
-    containerColor: Color,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
-) {
-    Button(
-        onClick = onClick,
-        modifier = modifier.height(52.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = containerColor,
-            contentColor = Color.White
-        ),
-        shape = RoundedCornerShape(12.dp)
-    ) {
-        // ✅ РИСУЕМ ИКОНКУ, если она передана
-        if (icon != null) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp)
-            )
-            Spacer(Modifier.width(12.dp))
-        }
-        Text(
-            text = text,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.SemiBold
-        )
-    }
-}
-
